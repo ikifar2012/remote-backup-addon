@@ -32,6 +32,7 @@ LABEL \
     io.hass.arch="${BUILD_ARCH}" \
     io.hass.type="addon" \
     io.hass.version=${BUILD_VERSION} \
+    io.hass.version="VERSION" \
     maintainer="Matheson Steplock <mathesonsteplock.ca>" \
     org.label-schema.description="Automatically create HA snapshots to remote server location using SCP" \
     org.label-schema.build-date=${BUILD_DATE} \
