@@ -10,9 +10,6 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
 - script: |
     docker run --rm --privileged -v ~/.docker:/root/.docker homeassistant/amd64-builder --all -t remote-backup -r https://github.com/ikifar2012/remote-backup-addon -b master
   displayName: 'Run a multi-line script'
