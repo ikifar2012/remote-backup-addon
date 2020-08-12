@@ -2,7 +2,9 @@
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
-
+variables:
+  DOCKER_USER: $(DOCKER_USERNAME)
+  DOCKER_PASS: $(DOCKER_PASSWORD)
 trigger:
 - master
 
@@ -11,5 +13,5 @@ pool:
 
 steps:
 - script: |
-    docker run --rm --privileged -v ~/.docker:/root/.docker homeassistant/amd64-builder --all -t remote-backup -r https://github.com/ikifar2012/remote-backup-addon -b master
+    docker run --rm --privileged -v ~/.docker:/root/.docker homeassistant/amd64-builder --all -t remote-backup -r https://github.com/ikifar2012/remote-backup-addon -b master --docker-user ${DOCKER_USER} --docker-password ${DOCKER_PASS}
   displayName: 'Run a multi-line script'
