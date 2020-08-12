@@ -1,9 +1,9 @@
 {
   "name": "Remote Backup",
-  "version": "4.2.6",
+  "version": "4.3",
   "slug": "remote_backup",
-  "description": "Exploit snapshots and SCP/rsync to create remote backups to specified server",
-  "url": "https://github.com/carstenschroeder/hassio-addons/blob/master/README.md",
+  "description": "Automatically create HA snapshots to remote server location using SCP",
+  "url": "https://github.com/ikifar2012/remote-backup-addon/blob/master/README.md",
   "startup": "once",
   "boot": "manual",
   "arch": [

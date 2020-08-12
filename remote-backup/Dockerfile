@@ -33,7 +33,7 @@ LABEL \
     io.hass.type="addon" \
     io.hass.version=${BUILD_VERSION} \
     maintainer="Matheson Steplock <mathesonsteplock.ca>" \
-    org.label-schema.description="Automatically create Hass.io snapshots to remote server location using `SCP`." \
+    org.label-schema.description="Automatically create HA snapshots to remote server location using `SCP`." \
     org.label-schema.build-date=${BUILD_DATE} \
     org.label-schema.name="Remote Backup" \
     org.label-schema.schema-version="1.0" \
