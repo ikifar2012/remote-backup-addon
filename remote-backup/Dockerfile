@@ -32,12 +32,12 @@ LABEL \
     io.hass.arch="${BUILD_ARCH}" \
     io.hass.type="addon" \
     io.hass.version=${BUILD_VERSION} \
-    maintainer="Nicolai Bjerre Pedersen <mr.bjerre@gmail.com>" \
+    maintainer="Matheson Steplock <mathesonsteplock.ca>" \
     org.label-schema.description="Automatically create Hass.io snapshots to remote server location using `SCP`." \
     org.label-schema.build-date=${BUILD_DATE} \
     org.label-schema.name="Remote Backup" \
     org.label-schema.schema-version="1.0" \
-    org.label-schema.usage="https://github.com/mr-bjerre/hassio-remote-backup/tree/master/README.md" \
+    org.label-schema.usage="https://github.com/ikifar2012/remote-backup-addon/blob/master/README.md" \
     org.label-schema.vcs-ref=${BUILD_REF} \
-    org.label-schema.vcs-url="https://github.com/mr-bjerre/hassio-remote-backup/" \
-    org.label-schema.vendor="Hass.io add-ons by Nicolai"
+    org.label-schema.vcs-url="https://github.com/ikifar2012/remote-backup-addon/" \
+    org.label-schema.vendor="Matheson's Home Assistant Addons"
