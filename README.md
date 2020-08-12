@@ -1,5 +1,5 @@
 # Remote Backup
-This add-on is a fork of the work of [overkill32] and [carstenschroeder]
+This add-on is a fork of the work of [carstenschroeder] which was originally created by [overkill32]
 # Installation
 This add-on can be added via my Home Assistant Add-on repository:
 ```
