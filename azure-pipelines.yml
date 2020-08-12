@@ -13,8 +13,3 @@ steps:
 - script: |
     docker run --rm --privileged -v ~/.docker:/root/.docker homeassistant/amd64-builder --all -t remote-backup -r https://github.com/ikifar2012/remote-backup-addon -b master
   displayName: 'Run a multi-line script'
-- task: Docker@2
-  inputs:
-    containerRegistry: 'Docker Hub ikifar'
-    repository: 'ikifar/remote-backup-amd64'
-    command: 'push'
