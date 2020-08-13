@@ -12,7 +12,7 @@ pool:
 
 steps:
 - script: |
-    echo $env:DOCKERUSER
+    echo $DOCKERUSER
     echo hi
     # docker run --rm --privileged -v ~/.docker:/root/.docker -v /var/run/docker.sock:/var/run/docker.sock:ro homeassistant/amd64-builder --all -t remote-backup -r https://github.com/ikifar2012/remote-backup-addon -b master --docker-user $DOCKERUSER --docker-password $DOCKERPASS
   displayName: 'Run a multi-line script'
