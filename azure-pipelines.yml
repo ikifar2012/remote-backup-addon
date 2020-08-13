@@ -10,10 +10,10 @@ trigger:
 - master
 
 pool:
-  # name: 'Default'
+  name: 'Default'
   vmImage: 'ubuntu-latest'
 
 steps:
 - script: |
-    docker run --rm --privileged -v ~/.docker:/root/.docker homeassistant/amd64-builder --all -t remote-backup -r https://github.com/ikifar2012/remote-backup-addon -b master --no-cache --docker-user ${DOCKER_USER} --docker-password ${DOCKER_PASS}
+    docker run --rm --privileged -v ~/.docker:/root/.docker homeassistant/amd64-builder --all -t remote-backup -r https://github.com/ikifar2012/remote-backup-addon -b master --docker-user ${DOCKER_USER} --docker-password ${DOCKER_PASS}
   displayName: 'Run a multi-line script'
