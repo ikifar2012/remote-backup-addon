@@ -10,8 +10,8 @@ trigger:
 - master
 
 pool:
-  name: 'Default'
-  vmImage: 'ubuntu-latest'
+  # name: 'Default'
+  vmImage: 'ubuntu-16.04'
 
 steps:
 - script: |
