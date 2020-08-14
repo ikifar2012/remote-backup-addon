@@ -14,6 +14,5 @@ pool:
 
 steps:
 - script: |
-
     docker run --rm --privileged -v ~/.docker:/root/.docker -v /var/run/docker.sock:/var/run/docker.sock:ro -v ${PWD}/remote-backup:/data homeassistant/amd64-builder --all --test -t /data
-  displayName: 'Run a multi-line script'
+  displayName: 'Test Add-on'
