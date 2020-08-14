@@ -24,10 +24,11 @@ function add-ssh-key {
     if [ "$SSH_ENABLED" = true ] ; then
         echo "Adding SSH key"
         mkdir -p ~/.ssh
-        cp ${SSH_ID} ${HOME}/.ssh/id
+        cp ${SSH_ID} ${HOME}/.ssh/id_rsa
+        ssh-keygen -y -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub
         (
             echo "Host remote"
-            echo "    IdentityFile ${HOME}/.ssh/id"
+            echo "    IdentityFile ${HOME}/.ssh/id_rsa"
             echo "    HostName ${SSH_HOST}"
             echo "    User ${SSH_USER}"
             echo "    Port ${SSH_PORT}"
@@ -35,7 +36,8 @@ function add-ssh-key {
         ) > "${HOME}/.ssh/config"
 
         chmod 600 "${HOME}/.ssh/config"
-        chmod 600 "${HOME}/.ssh/id"
+        chmod 600 "${HOME}/.ssh/id_rsa"
+        chmod 644 "${HOME}/.ssh/id_rsa.pub"
     fi    
 }
 
