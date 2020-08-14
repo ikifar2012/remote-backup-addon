@@ -25,6 +25,7 @@ function add-ssh-key {
         echo "Adding SSH key"
         mkdir -p ~/.ssh
         cp ${SSH_ID} ${HOME}/.ssh/id_rsa
+        chmod 600 "${HOME}/.ssh/id_rsa"
         ssh-keygen -y -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub
         (
             echo "Host remote"
@@ -36,7 +37,6 @@ function add-ssh-key {
         ) > "${HOME}/.ssh/config"
 
         chmod 600 "${HOME}/.ssh/config"
-        chmod 600 "${HOME}/.ssh/id_rsa"
         chmod 644 "${HOME}/.ssh/id_rsa.pub"
     fi    
 }
