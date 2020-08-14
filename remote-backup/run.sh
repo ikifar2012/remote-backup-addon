@@ -1,22 +1,20 @@
-#!/bin/bash
-set -e
-CONFIG_PATH=/data/options.json
+#!/usr/bin/env bashio
 
 # parse inputs from options
-SSH_ENABLED=$(jq --raw-output ".ssh_enabled" $CONFIG_PATH)
-SSH_HOST=$(jq --raw-output ".ssh_host" $CONFIG_PATH)
-SSH_PORT=$(jq --raw-output ".ssh_port" $CONFIG_PATH)
-SSH_USER=$(jq --raw-output ".ssh_user" $CONFIG_PATH)
-SSH_KEY=$(jq --raw-output ".ssh_key" $CONFIG_PATH)
-REMOTE_DIRECTORY=$(jq --raw-output ".remote_directory" $CONFIG_PATH)
-ZIP_PASSWORD=$(jq --raw-output '.zip_password' $CONFIG_PATH)
-KEEP_LOCAL_BACKUP=$(jq --raw-output '.keep_local_backup' $CONFIG_PATH)
+SSH_ENABLED=$(bashio::config "ssh_enabled")
+SSH_HOST=$(bashio::config "ssh_host")
+SSH_PORT=$(bashio::config "ssh_port")
+SSH_USER=$(bashio::config "ssh_user")
+SSH_KEY=$(bashio::config "ssh_key")
+REMOTE_DIRECTORY=$(bashio::config "remote_directory")
+ZIP_PASSWORD=$(bashio::config 'zip_password')
+KEEP_LOCAL_BACKUP=$(bashio::config 'keep_local_backup')
 
-RSYNC_ENABLED=$(jq --raw-output ".rsync_enabled" $CONFIG_PATH)
-RSYNC_HOST=$(jq --raw-output ".rsync_host" $CONFIG_PATH)
-RSYNC_ROOTFOLDER=$(jq --raw-output ".rsync_rootfolder" $CONFIG_PATH)
-RSYNC_USER=$(jq --raw-output ".rsync_user" $CONFIG_PATH)
-RSYNC_PASSWORD=$(jq --raw-output ".rsync_password" $CONFIG_PATH)
+RSYNC_ENABLED=$(bashio::config "rsync_enabled")
+RSYNC_HOST=$(bashio::config "rsync_host")
+RSYNC_ROOTFOLDER=$(bashio::config "rsync_rootfolder")
+RSYNC_USER=$(bashio::config "rsync_user")
+RSYNC_PASSWORD=$(bashio::config "rsync_password")
 
 # create variables
 SSH_ID="/ssl/${SSH_KEY}"
