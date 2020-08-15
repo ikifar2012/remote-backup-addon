@@ -28,12 +28,12 @@ ARG BUILD_VERSION
 # Labels
 LABEL \
     io.hass.name="Remote Backup" \
-    io.hass.description="Automatically create HA snapshots to remote server location using SCP" \
+    io.hass.description="Automatically create and backup HA snapshots using SCP" \
     io.hass.arch="${BUILD_ARCH}" \
     io.hass.type="addon" \
     io.hass.version=${BUILD_VERSION} \
     maintainer="Matheson Steplock <mathesonsteplock.ca>" \
-    org.label-schema.description="Automatically create HA snapshots to remote server location using SCP" \
+    org.label-schema.description="Automatically create and backup HA snapshots using SCP" \
     org.label-schema.build-date=${BUILD_DATE} \
     org.label-schema.name="Remote Backup" \
     org.label-schema.schema-version="1.0" \
