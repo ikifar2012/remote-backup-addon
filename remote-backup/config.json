@@ -1,6 +1,6 @@
 {
   "name": "Remote Backup",
-  "version": "4.3.4",
+  "version": "4.3.5",
   "slug": "remote_backup",
   "description": "Automatically create and backup HA snapshots using SCP",
   "url": "https://github.com/ikifar2012/remote-backup-addon/blob/master/README.md",
