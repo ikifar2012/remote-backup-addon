@@ -15,7 +15,7 @@
     "i386"
   ],
   "hassio_api": true,
-  "hassio_role": "backup",
+  "hassio_role": "manager",
   "map": ["config", "addons", "share", "ssl", "backup:rw"],
   "options": {
     "ssh_enabled": true,
