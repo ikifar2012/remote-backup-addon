@@ -6,6 +6,7 @@
 - Upgraded Base to 9.1.6
 - Upgraded Home Assistant CLI to 4.11.3
 - Reformatted code
+- Addresses issue #13
 
 # 2021.3.0
 
