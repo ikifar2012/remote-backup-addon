@@ -2,6 +2,8 @@
 
 # parse inputs from options
 SSH_ENABLED=$(bashio::config "ssh_enabled")
+FRIENDLY_NAME=$(bashio::config "friendly_name")
+CUSTOM_PREFIX=$(bashio::config "custom_prefix")
 SSH_HOST=$(bashio::config "ssh_host")
 SSH_PORT=$(bashio::config "ssh_port")
 SSH_USER=$(bashio::config "ssh_user")
@@ -41,6 +43,13 @@ function add-ssh-key {
     fi    
 }
 
+function create-local-backup {
+    name="${CUSTOM_PREFIX} $(date +'%Y-%m-%d %H-%M')"
+    echo "Creating local backup: \"${name}\""
+    slug=$(ha snapshots new --raw-json --name="${name}" | jq --raw-output '.data.slug')
+    echo "Backup created: ${slug}"
+}
+
 function copy-backup-to-remote {
 
     if [ "$SSH_ENABLED" = true ] ; then
@@ -53,38 +62,16 @@ function copy-backup-to-remote {
             zip -P "$ZIP_PASSWORD" "${slug}.zip" "${slug}".tar
             scp -F "${HOME}/.ssh/config" "${slug}.zip" remote:"${REMOTE_DIRECTORY}" && rm "${slug}.zip"
         fi
-    fi
-}
-
-function delete-local-backup {
-
-    ha snapshots reload
-
-    if [[ ${KEEP_LOCAL_BACKUP} == "all" ]]; then
-        :
-    elif [[ -z ${KEEP_LOCAL_BACKUP} ]]; then
-        echo "Deleting local backup: ${slug}"
-        ha snapshots remove "${slug}"
-    else
-
-        last_date_to_keep=$(ha snapshots list --raw-json | jq .data.snapshots[].date | sort -r | \
-            head -n "${KEEP_LOCAL_BACKUP}" | tail -n 1 | xargs date -D "%Y-%m-%dT%T" +%s --date )
-
-        ha snapshots list --raw-json | jq -c .data.snapshots[] | while read backup; do
-            if [[ $(echo ${backup} | jq .date | xargs date -D "%Y-%m-%dT%T" +%s --date ) -lt ${last_date_to_keep} ]]; then
-                echo "Deleting local backup: $(echo ${backup} | jq -r .slug)"
-                ha snapshots remove "$(echo ${backup} | jq -r .slug)"
+        if [ "$FRIENDLY_NAME" = true ] ; then
+            if [[ -z $ZIP_PASSWORD  ]]; then
+                echo "Renaming ${slug}.tar to ${name}.tar"
+                ssh remote "mv "${REMOTE_DIRECTORY}"/${slug}.tar "${REMOTE_DIRECTORY}"/\"${name}\".tar"
+            else
+                echo "Renaming ${slug}.zip to ${name}.zip"
+                ssh remote "mv "${REMOTE_DIRECTORY}"/${slug}.zip "${REMOTE_DIRECTORY}"/\"${name}\".zip"
             fi
-        done
-
+        fi
     fi
-}
-
-function create-local-backup {
-    name="Automated backup $(date +'%Y-%m-%d %H:%M')"
-    echo "Creating local backup: \"${name}\""
-    slug=$(ha snapshots new --raw-json --name="${name}" | jq --raw-output '.data.slug')
-    echo "Backup created: ${slug}"
 }
 
 function rsync_folders {
@@ -111,6 +98,29 @@ function rsync_folders {
     fi
 }
 
+function delete-local-backup {
+
+    ha snapshots reload
+
+    if [[ ${KEEP_LOCAL_BACKUP} == "all" ]]; then
+        :
+    elif [[ -z ${KEEP_LOCAL_BACKUP} ]]; then
+        echo "Deleting local backup: ${slug}"
+        ha snapshots remove "${slug}"
+    else
+
+        last_date_to_keep=$(ha snapshots list --raw-json | jq .data.snapshots[].date | sort -r | \
+            head -n "${KEEP_LOCAL_BACKUP}" | tail -n 1 | xargs date -D "%Y-%m-%dT%T" +%s --date )
+
+        ha snapshots list --raw-json | jq -c .data.snapshots[] | while read backup; do
+            if [[ $(echo ${backup} | jq .date | xargs date -D "%Y-%m-%dT%T" +%s --date ) -lt ${last_date_to_keep} ]]; then
+                echo "Deleting local backup: $(echo ${backup} | jq -r .slug)"
+                ha snapshots remove "$(echo ${backup} | jq -r .slug)"
+            fi
+        done
+
+    fi
+}
 
 add-ssh-key
 create-local-backup

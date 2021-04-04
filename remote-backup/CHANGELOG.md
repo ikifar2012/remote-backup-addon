@@ -1,3 +1,13 @@
+# 2021.4.0
+
+- Changed snapshot date scheme `%Y-%m-%d %H-%M` to improve compatibility
+- Added `custom_prefix` Allows you to change the name prefixing the date of the snapshot, by default this is set to `Automated backup`
+- Added `friendly_name` Allows the snapshot to be renamed on the destination server to match the name in the Home Assistant UI
+- Upgraded Base to 9.1.6
+- Upgraded Home Assistant CLI to 4.11.3
+- Reformatted code
+- Addresses issue #13
+
 # 2021.3.0
 
 - Upgraded Home Assistant CLI to 4.11.0
