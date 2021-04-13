@@ -1,3 +1,7 @@
+# 2021.4.1
+
+- Removed extra `:` in $rsyncurl
+
 # 2021.4.0
 
 - Changed snapshot date scheme `%Y-%m-%d %H-%M` to improve compatibility

@@ -77,7 +77,7 @@ function copy-backup-to-remote {
 function rsync_folders {
 
     if [ "$RSYNC_ENABLED" = true ] ; then
-        rsyncurl="$RSYNC_USER@$RSYNC_HOST::$RSYNC_ROOTFOLDER"
+        rsyncurl="$RSYNC_USER@$RSYNC_HOST:$RSYNC_ROOTFOLDER"
         echo "[Info] trying to rsync ha folders to $rsyncurl"
         echo ""
         echo "[Info] /config"
