@@ -1,5 +1,7 @@
 # Configuration
+
 Below is an example configuration:
+
 ```yaml
 ssh_enabled: true
 friendly_name: true
@@ -17,7 +19,9 @@ rsync_rootfolder: hassio-sync
 rsync_user: ''
 rsync_password: ''
 ```
-# Options
+
+## Options
+
 |Parameter|Required|Description|
 |---------|--------|-----------|
 |`ssh_enabled`|No|Allows you to disable or enable the SSH function|
@@ -30,3 +34,25 @@ rsync_password: ''
 |`remote_directory`|Yes|The destination directory where the snapshots will be placed|
 |`zip_password`|No|If set then the backup will be contained in a password protected zip file|
 |`keep_local_backup`|No|Control how many local backups you want to preserve on the Home Assistant host. The default (`""`) is to keep no local backups created from this addon. To keep all backups set this to `all` then all local backups will be preserved. This can also be set with a number to preserve only the specified amount|
+
+# Rclone (Experimental)
+
+To use simply place your rclone.conf file in the `/ssl/` share, these can be generated using the `rclone config` command on any computer running rclone, example shown below:
+
+```ini
+[backblaze]
+type = b2
+account = xxxxxxxxxx
+key = xxxxxxxxxxx
+```
+
+## Options
+
+|Parameter|Required|Description|
+|---------|--------|-----------|
+|`rclone_enabled`|No|Allows you to disable or enable the rclone function|
+|`rclone_copy`|No|Enables rclone copy mode|
+|`rclone_sync`|No|Enables rclone sync mode|
+|`rclone_restore`|No|Restores files in remote to a date stamped folder in `/backup/`|
+|`rclone_remote`|Yes|The name of the remote specified in rsync.conf, example: `backblaze`|
+|`rclone_remote_directory`|Yes|The path of the remote directory which the addon will save to, including bucket name if using a service like backblaze|

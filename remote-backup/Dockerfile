@@ -7,7 +7,12 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ENV LANG C.UTF-8
 
 # Setup base
-RUN apk add --no-cache jq openssh-client zip sshpass rsync wget
+RUN apk add --no-cache jq openssh-client zip sshpass rsync wget curl unzip
+
+# Rclone CLI
+ARG BUILD_ARCH
+RUN curl https://rclone.org/install.sh | bash
+
 
 # Hass.io CLI
 ARG BUILD_ARCH
