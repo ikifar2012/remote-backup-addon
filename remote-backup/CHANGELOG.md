@@ -1,7 +1,6 @@
 # 2021.5.0
 
 - Added rclone
-- Upgraded Home Assistant CLI to 4.12.1
 - Upgraded Base to 9.2.0
 - rsync now excludes all database files
 
