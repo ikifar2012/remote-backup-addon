@@ -17,6 +17,12 @@ RSYNC_HOST=$(bashio::config "rsync_host")
 RSYNC_ROOTFOLDER=$(bashio::config "rsync_rootfolder")
 RSYNC_USER=$(bashio::config "rsync_user")
 RSYNC_PASSWORD=$(bashio::config "rsync_password")
+RCLONE_ENABLED=$(bashio::config "rclone_enabled")
+RCLONE_COPY=$(bashio::config "rclone_copy")
+RCLONE_SYNC=$(bashio::config "rclone_sync")
+RCLONE_RESTORE=$(bashio::config "rclone_restore")
+RCLONE_REMOTE=$(bashio::config "rclone_remote")
+RCLONE_REMOTE_DIRECTORY=$(bashio::config "rclone_remote_directory")
 
 # create variables
 SSH_ID="/ssl/${SSH_KEY}"
@@ -81,7 +87,7 @@ function rsync_folders {
         echo "[Info] trying to rsync ha folders to $rsyncurl"
         echo ""
         echo "[Info] /config"
-         sshpass -p $RSYNC_PASSWORD rsync -av --exclude '*.db-shm' --exclude '*.db-wal' /config/ $rsyncurl/config/ --delete
+         sshpass -p $RSYNC_PASSWORD rsync -av --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ $rsyncurl/config/ --delete
         echo ""
         echo "[Info] /addons"
          sshpass -p $RSYNC_PASSWORD rsync -av /addons/ $rsyncurl/addons/ --delete
@@ -97,6 +103,46 @@ function rsync_folders {
         echo "[Info] Finished rsync"
     fi
 }
+
+function rclone_snapshots {
+    if [ "$RCLONE_ENABLED" = true ] ; then
+        cd /backup/
+        mkdir -p ~/.config/rclone/
+        cp -a /ssl/rclone.conf ~/.config/rclone/rclone.conf
+        echo "Starting rclone"
+        if [ "$RCLONE_COPY" = true ] ; then
+            if [ "$FRIENDLY_NAME" = true ] ; then
+                if [[ -z $ZIP_PASSWORD  ]]; then
+                    echo "Copying ${slug}.tar to ${RCLONE_REMOTE_DIRECTORY}/${name}.tar"
+                    rclone copyto ${slug}.tar ${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}/"${name}".tar
+                else
+                    echo "Copying ${slug}.zip to ${RCLONE_REMOTE_DIRECTORY}/${name}.zip"
+                    rclone copyto ${slug}.zip ${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}/"${name}".zip
+                fi
+            else
+                if [[ -z $ZIP_PASSWORD  ]]; then
+                    echo "Copying ${slug}.tar to ${RCLONE_REMOTE_DIRECTORY}/${slug}.tar"
+                    rclone copy ${slug}.tar ${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}
+                else
+                    echo "Copying ${slug}.zip to ${RCLONE_REMOTE_DIRECTORY}/${slug}.zip"
+                    rclone copy ${slug}.zip ${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}
+                fi
+            fi
+        fi
+        if [ "$RCLONE_SYNC" = true ] ; then
+            echo "Syncing Backups"
+            rclone sync . ${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}
+        fi
+        if [ "$RCLONE_RESTORE" = true ] ; then
+            DATEFORMAT=$(date +%F)
+            RESTORENAME="restore-${DATEFORMAT}"
+            mkdir -p "${RESTORENAME}"
+            echo "Restoring Backups to ${RESTORENAME}"
+            rclone copyto ${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY} ${RESTORENAME}/
+        fi
+    fi
+}
+
 
 function delete-local-backup {
 
@@ -126,6 +172,7 @@ add-ssh-key
 create-local-backup
 copy-backup-to-remote
 rsync_folders
+rclone_snapshots
 delete-local-backup
 
 echo "Backup process done!"

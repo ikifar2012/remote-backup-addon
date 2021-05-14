@@ -1,6 +1,6 @@
 {
   "name": "Remote Backup",
-  "version": "2021.4.1",
+  "version": "2021.5.0",
   "slug": "remote_backup",
   "description": "Automatically create and backup HA snapshots using SCP",
   "url": "https://github.com/ikifar2012/remote-backup-addon/blob/master/README.md",
@@ -32,7 +32,13 @@
     "rsync_host": "",
     "rsync_rootfolder": "hassio-sync",
     "rsync_user": "",
-    "rsync_password": ""
+    "rsync_password": "",
+    "rclone_enabled": false,
+    "rclone_copy": false,
+    "rclone_sync": false,
+    "rclone_restore": false,
+    "rclone_remote": "",
+    "rclone_remote_directory": ""
   },
   "schema": {
     "ssh_enabled": "bool",
@@ -49,6 +55,12 @@
     "rsync_host": "str",
     "rsync_rootfolder": "str",
     "rsync_user": "str",
-    "rsync_password": "str"
+    "rsync_password": "str",
+    "rclone_enabled": "bool",
+    "rclone_copy": "bool",
+    "rclone_sync": "bool",
+    "rclone_restore": "bool",
+    "rclone_remote": "str",
+    "rclone_remote_directory": "str"
   }
 }

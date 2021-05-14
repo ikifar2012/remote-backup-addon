@@ -7,12 +7,19 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ENV LANG C.UTF-8
 
 # Setup base
-RUN apk add --no-cache jq openssh-client zip sshpass rsync wget
+RUN apk add --no-cache jq openssh-client zip sshpass rsync wget curl unzip
+
+# Rclone CLI
+ARG BUILD_ARCH
+RUN wget -O /tmp/rclone.zip "https://github.com/rclone/rclone/releases/download/v1.55.1/rclone-v1.55.1-linux-${BUILD_ARCH}.zip" \
+    && unzip -j /tmp/rclone.zip \
+    && mv rclone /usr/bin/rclone \
+    && chmod a+x /usr/bin/rclone
 
 # Hass.io CLI
 ARG BUILD_ARCH
 ARG CLI_VERSION
-RUN wget -O /usr/bin/ha "https://github.com/home-assistant/cli/releases/download/4.11.3/ha_${BUILD_ARCH}" \
+RUN wget -O /usr/bin/ha "https://github.com/home-assistant/cli/releases/download/4.12.1/ha_${BUILD_ARCH}" \
     && chmod a+x /usr/bin/ha
 
 # Copy data
