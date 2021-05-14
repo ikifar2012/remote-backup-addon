@@ -11,10 +11,13 @@ RUN apk add --no-cache jq openssh-client zip sshpass rsync wget curl unzip
 
 # Rclone CLI
 ARG BUILD_ARCH
-RUN wget -O /tmp/rclone.zip "https://github.com/rclone/rclone/releases/download/v1.55.1/rclone-v1.55.1-linux-${BUILD_ARCH}.zip" \
-    && unzip -j /tmp/rclone.zip \
-    && mv rclone /usr/bin/rclone \
-    && chmod a+x /usr/bin/rclone
+# RUN wget -O /tmp/rclone.zip "https://github.com/rclone/rclone/releases/download/v1.55.1/rclone-v1.55.1-linux-${BUILD_ARCH}.zip" \
+#     && unzip -j /tmp/rclone.zip \
+#     && mv rclone /usr/bin/rclone \
+#     && chmod a+x /usr/bin/rclone
+RUN uname
+RUN curl https://rclone.org/install.sh | bash
+
 
 # Hass.io CLI
 ARG BUILD_ARCH
