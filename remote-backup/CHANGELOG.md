@@ -1,3 +1,7 @@
+# 2021.5.1
+
+- Upgraded Home Assistant CLI to 4.12.2
+
 # 2021.5.0
 
 - Added rclone
