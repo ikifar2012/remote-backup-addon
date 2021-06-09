@@ -1,3 +1,7 @@
+# 2021.6.0
+
+- Upgraded Base to 9.2.1
+
 # 2021.5.2
 
 - Upgraded Home Assistant CLI to 4.12.3
