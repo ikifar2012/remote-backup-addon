@@ -1,3 +1,7 @@
+# 2021.6.1
+
+- Upgraded Base to 9.2.2
+
 # 2021.6.0
 
 - Upgraded Base to 9.2.1
