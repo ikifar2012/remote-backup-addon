@@ -1,3 +1,7 @@
+# 2021.8.0
+
+- Upgraded Base to 10.0.1
+
 # 2021.6.2
 
 - Upgraded Base to 10.0.0
