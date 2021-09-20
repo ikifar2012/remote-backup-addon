@@ -1,3 +1,8 @@
+# 2021.9.0
+
+- Upgraded Base to 10.0.2
+- 🎉 Solved issue #24 thanks to @hendrikma for pointing it out and @DubhAd for helping me solve it!!! 🎉
+
 # 2021.8.0
 
 - Upgraded Base to 10.0.1
