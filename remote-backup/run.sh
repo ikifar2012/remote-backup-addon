@@ -71,10 +71,10 @@ function copy-backup-to-remote {
         if [ "$FRIENDLY_NAME" = true ] ; then
             if [[ -z $ZIP_PASSWORD  ]]; then
                 echo "Renaming ${slug}.tar to ${name}.tar"
-                ssh remote "mv "${REMOTE_DIRECTORY}"/${slug}.tar "${REMOTE_DIRECTORY}"/\"${name}\".tar"
+                ssh remote "mv \"${REMOTE_DIRECTORY}/${slug}.tar\" \"${REMOTE_DIRECTORY}/${name}.tar\""
             else
                 echo "Renaming ${slug}.zip to ${name}.zip"
-                ssh remote "mv "${REMOTE_DIRECTORY}"/${slug}.zip "${REMOTE_DIRECTORY}"/\"${name}\".zip"
+                ssh remote "mv \"${REMOTE_DIRECTORY}/${slug}.zip\" \"${REMOTE_DIRECTORY}/${name}.zip\""
             fi
         fi
     fi
