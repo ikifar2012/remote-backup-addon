@@ -1,3 +1,9 @@
+# 2021.10.0
+
+- Upgraded Base to 10.1.1
+- Upgraded Home Assistant CLI to 4.14.0 
+- Changed from `snapshots` to `backups` (See Breaking Change #26)
+
 # 2021.9.0
 
 - Upgraded Base to 10.0.2
