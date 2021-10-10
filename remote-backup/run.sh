@@ -52,7 +52,7 @@ function add-ssh-key {
 function create-local-backup {
     name="${CUSTOM_PREFIX} $(date +'%Y-%m-%d %H-%M')"
     echo "Creating local backup: \"${name}\""
-    slug=$(ha snapshots new --raw-json --name="${name}" | jq --raw-output '.data.slug')
+    slug=$(ha backups new --raw-json --name="${name}" | jq --raw-output '.data.slug')
     echo "Backup created: ${slug}"
 }
 
@@ -104,7 +104,7 @@ function rsync_folders {
     fi
 }
 
-function rclone_snapshots {
+function rclone_backups {
     if [ "$RCLONE_ENABLED" = true ] ; then
         cd /backup/
         mkdir -p ~/.config/rclone/
@@ -146,22 +146,22 @@ function rclone_snapshots {
 
 function delete-local-backup {
 
-    ha snapshots reload
+    ha backups reload
 
     if [[ ${KEEP_LOCAL_BACKUP} == "all" ]]; then
         :
     elif [[ -z ${KEEP_LOCAL_BACKUP} ]]; then
         echo "Deleting local backup: ${slug}"
-        ha snapshots remove "${slug}"
+        ha backups remove "${slug}"
     else
 
-        last_date_to_keep=$(ha snapshots list --raw-json | jq .data.snapshots[].date | sort -r | \
+        last_date_to_keep=$(ha backups list --raw-json | jq .data.backups[].date | sort -r | \
             head -n "${KEEP_LOCAL_BACKUP}" | tail -n 1 | xargs date -D "%Y-%m-%dT%T" +%s --date )
 
-        ha snapshots list --raw-json | jq -c .data.snapshots[] | while read backup; do
+        ha backups list --raw-json | jq -c .data.backups[] | while read backup; do
             if [[ $(echo ${backup} | jq .date | xargs date -D "%Y-%m-%dT%T" +%s --date ) -lt ${last_date_to_keep} ]]; then
                 echo "Deleting local backup: $(echo ${backup} | jq -r .slug)"
-                ha snapshots remove "$(echo ${backup} | jq -r .slug)"
+                ha backups remove "$(echo ${backup} | jq -r .slug)"
             fi
         done
 
@@ -172,7 +172,7 @@ add-ssh-key
 create-local-backup
 copy-backup-to-remote
 rsync_folders
-rclone_snapshots
+rclone_backups
 delete-local-backup
 
 echo "Backup process done!"
