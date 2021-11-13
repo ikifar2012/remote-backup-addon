@@ -16,6 +16,7 @@ RSYNC_ENABLED=$(bashio::config "rsync_enabled")
 RSYNC_HOST=$(bashio::config "rsync_host")
 RSYNC_ROOTFOLDER=$(bashio::config "rsync_rootfolder")
 RSYNC_USER=$(bashio::config "rsync_user")
+RSYNC_EXCLUDE=$(bashio::config "rsync_exclude")
 RSYNC_PASSWORD=$(bashio::config "rsync_password")
 RCLONE_ENABLED=$(bashio::config "rclone_enabled")
 RCLONE_COPY=$(bashio::config "rclone_copy")
@@ -84,22 +85,41 @@ function rsync_folders {
 
     if [ "$RSYNC_ENABLED" = true ] ; then
         rsyncurl="$RSYNC_USER@$RSYNC_HOST:$RSYNC_ROOTFOLDER"
-        echo "[Info] trying to rsync ha folders to $rsyncurl"
-        echo ""
-        echo "[Info] /config"
-         sshpass -p $RSYNC_PASSWORD rsync -av --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ $rsyncurl/config/ --delete
-        echo ""
-        echo "[Info] /addons"
-         sshpass -p $RSYNC_PASSWORD rsync -av /addons/ $rsyncurl/addons/ --delete
-        echo ""
-        echo "[Info] /backup"
-         sshpass -p $RSYNC_PASSWORD rsync -av /backup/ $rsyncurl/backup/ --delete
-        echo ""
-        echo "[Info] /share"
-         sshpass -p $RSYNC_PASSWORD rsync -av /share/ $rsyncurl/share/ --delete
-        echo ""
-        echo "[Info] /ssl"
-         sshpass -p $RSYNC_PASSWORD rsync -av /ssl/ $rsyncurl/ssl/ --delete
+        if [ -z "$RSYNC_EXCLUDE" ]; then
+            echo "[Info] /config"
+             sshpass -p $RSYNC_PASSWORD rsync -av --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ $rsyncurl/config/ --delete
+            echo ""
+            echo "[Info] /addons"
+             sshpass -p $RSYNC_PASSWORD rsync -av /addons/ $rsyncurl/addons/ --delete
+            echo ""
+            echo "[Info] /backup"
+             sshpass -p $RSYNC_PASSWORD rsync -av /backup/ $rsyncurl/backup/ --delete
+            echo ""
+            echo "[Info] /share"
+             sshpass -p $RSYNC_PASSWORD rsync -av /share/ $rsyncurl/share/ --delete
+            echo ""
+            echo "[Info] /ssl"
+             sshpass -p $RSYNC_PASSWORD rsync -av /ssl/ $rsyncurl/ssl/ --delete
+            echo "[Info] trying to rsync ha folders to $rsyncurl"
+            echo ""
+        else
+            echo "[Info] /config"
+             sshpass -p $RSYNC_PASSWORD rsync -av --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ $rsyncurl/config/ --delete
+            echo ""
+            echo "[Info] /addons"
+             sshpass -p $RSYNC_PASSWORD rsync -av /addons/ $rsyncurl/addons/ --delete --exclude \"$RSYNC_EXCLUDE\"
+            echo ""
+            echo "[Info] /backup"
+             sshpass -p $RSYNC_PASSWORD rsync -av /backup/ $rsyncurl/backup/ --delete --exclude \"$RSYNC_EXCLUDE\"
+            echo ""
+            echo "[Info] /share"
+             sshpass -p $RSYNC_PASSWORD rsync -av /share/ $rsyncurl/share/ --delete --exclude \"$RSYNC_EXCLUDE\"
+            echo ""
+            echo "[Info] /ssl"
+             sshpass -p $RSYNC_PASSWORD rsync -av /ssl/ $rsyncurl/ssl/ --delete --exclude \"$RSYNC_EXCLUDE\"
+            echo "[Info] trying to rsync ha folders to $rsyncurl"
+            echo ""
+        fi
         echo "[Info] Finished rsync"
     fi
 }
