@@ -34,6 +34,7 @@ options:
   rsync_enabled: false
   rsync_host: ''
   rsync_rootfolder: hassio-sync
+  rsync_exclude: ''
   rsync_user: ''
   rsync_password: ''
   rclone_enabled: false
@@ -56,6 +57,7 @@ schema:
   rsync_enabled: bool
   rsync_host: str
   rsync_rootfolder: str
+  rsync_exclude: str
   rsync_user: str
   rsync_password: str
   rclone_enabled: bool
