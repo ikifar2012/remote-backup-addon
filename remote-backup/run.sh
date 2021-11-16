@@ -13,6 +13,7 @@ ZIP_PASSWORD=$(bashio::config 'zip_password')
 KEEP_LOCAL_BACKUP=$(bashio::config 'keep_local_backup')
 
 RSYNC_ENABLED=$(bashio::config "rsync_enabled")
+RSYNC_VERBOSE=$(bashio::config "rsync_verbose")
 RSYNC_HOST=$(bashio::config "rsync_host")
 RSYNC_ROOTFOLDER=$(bashio::config "rsync_rootfolder")
 RSYNC_USER=$(bashio::config "rsync_user")
@@ -95,25 +96,30 @@ function rsync_folders {
 
     if [ "$RSYNC_ENABLED" = true ] ; then
         rsyncurl="$RSYNC_USER@$RSYNC_HOST:$RSYNC_ROOTFOLDER"
+        if [ "$RSYNC_VERBOSE" = true ] ; then
+            FLAGS='-av'
+        else
+            FLAGS='-a'
+        fi
         if [ -z "$RSYNC_EXCLUDE" ]; then
             warn "Syncing /config"
-             sshpass -p $RSYNC_PASSWORD rsync -a --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ $rsyncurl/config/ --delete
+             sshpass -p $RSYNC_PASSWORD rsync $FLAGS --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ $rsyncurl/config/ --delete
             info "/config sync complete"
             echo ""
             warn "Syncing /addons"
-             sshpass -p $RSYNC_PASSWORD rsync -a /addons/ $rsyncurl/addons/ --delete
+             sshpass -p $RSYNC_PASSWORD rsync $FLAGS /addons/ $rsyncurl/addons/ --delete
             info "/addons sync complete"
             echo ""
             warn "Syncing /backup"
-             sshpass -p $RSYNC_PASSWORD rsync -a /backup/ $rsyncurl/backup/ --delete
+             sshpass -p $RSYNC_PASSWORD rsync $FLAGS /backup/ $rsyncurl/backup/ --delete
             info "/backup sync complete"
             echo ""
             warn "Syncing /share"
-             sshpass -p $RSYNC_PASSWORD rsync -a /share/ $rsyncurl/share/ --delete
+             sshpass -p $RSYNC_PASSWORD rsync $FLAGS /share/ $rsyncurl/share/ --delete
             info "/share sync complete"
             echo ""
             warn "Syncing /ssl"
-             sshpass -p $RSYNC_PASSWORD rsync -a /ssl/ $rsyncurl/ssl/ --delete
+             sshpass -p $RSYNC_PASSWORD rsync $FLAGS /ssl/ $rsyncurl/ssl/ --delete
             info "/ssl sync complete"
             echo ""
         else
@@ -122,23 +128,23 @@ function rsync_folders {
             cat /tmp/rsync_exclude.txt
             info "Starting rsync"
             warn "Syncing /config"
-             sshpass -p $RSYNC_PASSWORD rsync -a --exclude-from='/tmp/rsync_exclude.txt' --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ $rsyncurl/config/ --delete
+             sshpass -p $RSYNC_PASSWORD rsync $FLAGS --exclude-from='/tmp/rsync_exclude.txt' --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ $rsyncurl/config/ --delete
             info "/config sync complete"
             echo ""
             warn "Syncing /addons"
-             sshpass -p $RSYNC_PASSWORD rsync -a --exclude-from='/tmp/rsync_exclude.txt' /addons/ $rsyncurl/addons/ --delete
+             sshpass -p $RSYNC_PASSWORD rsync $FLAGS --exclude-from='/tmp/rsync_exclude.txt' /addons/ $rsyncurl/addons/ --delete
             info "/addons sync complete"
             echo ""
             warn "Syncing /backup"
-             sshpass -p $RSYNC_PASSWORD rsync -a --exclude-from='/tmp/rsync_exclude.txt' /backup/ $rsyncurl/backup/ --delete
+             sshpass -p $RSYNC_PASSWORD rsync $FLAGS --exclude-from='/tmp/rsync_exclude.txt' /backup/ $rsyncurl/backup/ --delete
             info "/backup sync complete"
             echo ""
             warn "Syncing /share"
-             sshpass -p $RSYNC_PASSWORD rsync -a --exclude-from='/tmp/rsync_exclude.txt' /share/ $rsyncurl/share/ --delete
+             sshpass -p $RSYNC_PASSWORD rsync $FLAGS --exclude-from='/tmp/rsync_exclude.txt' /share/ $rsyncurl/share/ --delete
             info "/share sync complete"
             echo ""
             warn "Syncing /ssl"
-             sshpass -p $RSYNC_PASSWORD rsync -a --exclude-from='/tmp/rsync_exclude.txt' /ssl/ $rsyncurl/ssl/ --delete
+             sshpass -p $RSYNC_PASSWORD rsync $FLAGS --exclude-from='/tmp/rsync_exclude.txt' /ssl/ $rsyncurl/ssl/ --delete
             info "/ssl sync complete"
             echo ""
         fi
@@ -150,7 +156,7 @@ function rclone_backups {
     if [ "$RCLONE_ENABLED" = true ] ; then
         cd /backup/
         mkdir -p ~/.config/rclone/
-        cp -a /ssl/rclone.conf ~/.config/rclone/rclone.conf
+        cp $FLAGS /ssl/rclone.conf ~/.config/rclone/rclone.conf
         echo "Starting rclone"
         if [ "$RCLONE_COPY" = true ] ; then
             if [ "$FRIENDLY_NAME" = true ] ; then
