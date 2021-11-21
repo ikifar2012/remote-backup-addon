@@ -17,7 +17,7 @@ rsync_enabled: false
 rsync_verbose: false
 rsync_host: ''
 rsync_rootfolder: hassio-sync
-rsync_exclude: keyfile, .tdm, .cache, .*, *.tar
+rsync_exclude: keyfile, .tdm, .cache, *.tar, home-assistant*.*, .mozilla, .vnc
 rsync_user: ''
 rsync_password: ''
 ```
