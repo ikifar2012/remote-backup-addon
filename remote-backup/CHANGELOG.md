@@ -2,7 +2,7 @@
 
 - Fix typo in rclone causing failure
 
-**Full Changelog**: https://github.com/ikifar2012/remote-backup-addon/compare/2021.11.1...2021.11.1
+**Full Changelog**: https://github.com/ikifar2012/remote-backup-addon/compare/2021.11.1...2021.11.2
 
 # 2021.11.1
 
