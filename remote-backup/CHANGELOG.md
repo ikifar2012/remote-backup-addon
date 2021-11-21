@@ -5,6 +5,8 @@
 - Switched from json to yaml
 - Upgraded base image to 10.2.3
 
+**Full Changelog**: https://github.com/ikifar2012/remote-backup-addon/compare/2021.10.0...2021.11.0
+
 # 2021.10.0
 
 - Upgraded Base to 10.1.1
