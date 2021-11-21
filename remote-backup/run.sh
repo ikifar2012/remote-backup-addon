@@ -156,7 +156,7 @@ function rclone_backups {
     if [ "$RCLONE_ENABLED" = true ] ; then
         cd /backup/
         mkdir -p ~/.config/rclone/
-        cp $FLAGS /ssl/rclone.conf ~/.config/rclone/rclone.conf
+        cp -a /ssl/rclone.conf ~/.config/rclone/rclone.conf
         echo "Starting rclone"
         if [ "$RCLONE_COPY" = true ] ; then
             if [ "$FRIENDLY_NAME" = true ] ; then
