@@ -1,6 +1,9 @@
 name: "Publish"
 
 on:
+  workflow_dispatch:
+    branches:
+      - master
   release:
     types: [published]
 
