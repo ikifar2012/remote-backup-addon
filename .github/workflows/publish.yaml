@@ -25,4 +25,5 @@ jobs:
           args: |
             --all \
             --target remote-backup \
-            --docker-hub ikifar
+            --docker-user ${{ secrets.DOCKERHUB_USERNAME }} \
+            --docker-password ${{ secrets.DOCKERHUB_TOKEN }}
