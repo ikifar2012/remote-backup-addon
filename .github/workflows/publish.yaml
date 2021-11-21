@@ -24,4 +24,6 @@ jobs:
         with:
           args: |
             --all \
-            --target remote-backup
+            --target remote-backup \
+            --docker-user ${{ secrets.DOCKERHUB_USERNAME }} \
+            --docker-password ${{ secrets.DOCKERHUB_TOKEN }}
