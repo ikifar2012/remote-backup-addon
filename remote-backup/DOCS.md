@@ -14,8 +14,10 @@ remote_directory: /path/to/your/backup/dir
 zip_password: ''
 keep_local_backup: '3'
 rsync_enabled: false
+rsync_verbose: false
 rsync_host: ''
 rsync_rootfolder: hassio-sync
+rsync_exclude: keyfile, .tdm, .cache, .*, *.tar
 rsync_user: ''
 rsync_password: ''
 ```
