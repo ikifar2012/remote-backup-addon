@@ -2,9 +2,8 @@
 
 - Added rsync exclude (#28)
 - Made command line output more friendly
-- Switched from json to yaml
 - Upgraded base image to 10.2.3
-- Switch to Github Actions
+- Switched to Github Actions
 
 **Full Changelog**: https://github.com/ikifar2012/remote-backup-addon/compare/2021.10.0...2021.11.1
 
