@@ -1,3 +1,10 @@
+# 2021.11.0
+
+- Added rsync exclude (#28)
+- Made command line output more friendly 
+- Switched from json to yaml
+- Upgraded base image to 10.2.3
+
 # 2021.10.0
 
 - Upgraded Base to 10.1.1
