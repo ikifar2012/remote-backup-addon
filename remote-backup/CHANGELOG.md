@@ -1,3 +1,7 @@
+# 2021.12.0
+
+- Upgraded base image to 11.0.0
+
 # 2021.11.2
 
 - Fix typo in rclone causing failure

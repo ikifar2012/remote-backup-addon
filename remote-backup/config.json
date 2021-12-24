@@ -1,6 +1,6 @@
 {
   "name": "Remote Backup",
-  "version": "2021.11.2",
+  "version": "2021.12.0",
   "slug": "remote_backup",
   "description": "Automatically create and backup HA backups using SCP",
   "url": "https://github.com/ikifar2012/remote-backup-addon/blob/master/README.md",
