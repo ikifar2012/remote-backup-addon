@@ -1,6 +1,9 @@
 # 2022.1.1
+
 - Updated url in `config.yaml`
 - Fixed `amd64` base image
+
+**Full Changelog**: https://github.com/ikifar2012/remote-backup-addon/compare/2022.1.0...2022.1.1
 
 # 2022.1.0
 
