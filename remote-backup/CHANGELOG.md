@@ -1,3 +1,9 @@
+# 2022.1.0
+
+- Converted to YAML
+- Upgraded base image to 11.0.1
+- Moved docs to [addons.mathesonsteplock.ca](https://addons.mathesonsteplock.ca/docs/addons/remote-backup/basic-config)
+
 # 2021.12.0
 
 - Upgraded base image to 11.0.0
