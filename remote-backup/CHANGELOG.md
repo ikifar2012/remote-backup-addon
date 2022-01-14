@@ -1,3 +1,7 @@
+# 2022.1.1
+- Updated url in `config.yaml`
+- Fixed `amd64` base image
+
 # 2022.1.0
 
 - Converted to YAML
