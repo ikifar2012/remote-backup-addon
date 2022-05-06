@@ -32,13 +32,13 @@ function warn  { echo -e "\e[33m[warn] $*\e[39m"; }
 
 # create variables
 SSH_ID="/ssl/${SSH_KEY}"
-SSH_ID=$(echo -n ${SSH_ID})
+SSH_ID=$(echo -n "${SSH_ID}")
 function add-ssh-key {
 
-    if [ "$SSH_ENABLED" = true ] ; then
+    if [ "${SSH_ENABLED}" = true ] ; then
         info "Adding SSH key"
         mkdir -p ~/.ssh
-        cp ${SSH_ID} ${HOME}/.ssh/id_rsa
+        cp "${SSH_ID}" "${HOME}"/.ssh/id_rsa
         chmod 600 "${HOME}/.ssh/id_rsa"
         ssh-keygen -y -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub
         (
@@ -48,6 +48,7 @@ function add-ssh-key {
             echo "    User ${SSH_USER}"
             echo "    Port ${SSH_PORT}"
             echo "    StrictHostKeyChecking no"
+
         ) > "${HOME}/.ssh/config"
 
         chmod 600 "${HOME}/.ssh/config"
@@ -66,7 +67,7 @@ function create-local-backup {
 function copy-backup-to-remote {
 
     if [ "$SSH_ENABLED" = true ] ; then
-        cd /backup/
+        cd /backup/ || exit
         if [[ -z $ZIP_PASSWORD  ]]; then
             warn "Copying ${slug}.tar to ${REMOTE_DIRECTORY} on ${SSH_HOST} using SCP"
             scp -F "${HOME}/.ssh/config" "${slug}.tar" remote:"${REMOTE_DIRECTORY}"
@@ -77,8 +78,8 @@ function copy-backup-to-remote {
             scp -F "${HOME}/.ssh/config" "${slug}.zip" remote:"${REMOTE_DIRECTORY}" && rm "${slug}.zip"
             info "Backup copied to ${REMOTE_DIRECTORY}/${slug}.zip on ${SSH_HOST}"
         fi
-        if [ "$FRIENDLY_NAME" = true ] ; then
-            if [[ -z $ZIP_PASSWORD  ]]; then
+        if [ "${FRIENDLY_NAME}" = true ] ; then
+            if [[ -z ${ZIP_PASSWORD}  ]]; then
                 warn "Renaming ${slug}.tar to ${name}.tar"
                 ssh remote "mv \"${REMOTE_DIRECTORY}/${slug}.tar\" \"${REMOTE_DIRECTORY}/${name}.tar\""
                 info "Backup renamed to ${REMOTE_DIRECTORY}/${name}.tar on ${SSH_HOST}"
@@ -94,57 +95,57 @@ function copy-backup-to-remote {
 
 function rsync_folders {
 
-    if [ "$RSYNC_ENABLED" = true ] ; then
-        rsyncurl="$RSYNC_USER@$RSYNC_HOST:$RSYNC_ROOTFOLDER"
-        if [ "$RSYNC_VERBOSE" = true ] ; then
+    if [ "${RSYNC_ENABLED}" = true ] ; then
+        rsyncurl="${RSYNC_USER}@${RSYNC_HOST}:${RSYNC_ROOTFOLDER}"
+        if [ "${RSYNC_VERBOSE}" = true ] ; then
             FLAGS='-av'
         else
             FLAGS='-a'
         fi
         if [ -z "$RSYNC_EXCLUDE" ]; then
             warn "Syncing /config"
-             sshpass -p $RSYNC_PASSWORD rsync $FLAGS --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ $rsyncurl/config/ --delete
+             sshpass -p "${RSYNC_PASSWORD}" rsync $FLAGS --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ "${rsyncurl}"/config/ --delete
             info "/config sync complete"
             echo ""
             warn "Syncing /addons"
-             sshpass -p $RSYNC_PASSWORD rsync $FLAGS /addons/ $rsyncurl/addons/ --delete
+             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} /addons/ "${rsyncurl}"/addons/ --delete
             info "/addons sync complete"
             echo ""
             warn "Syncing /backup"
-             sshpass -p $RSYNC_PASSWORD rsync $FLAGS /backup/ $rsyncurl/backup/ --delete
+             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} /backup/ "${rsyncurl}"/backup/ --delete
             info "/backup sync complete"
             echo ""
             warn "Syncing /share"
-             sshpass -p $RSYNC_PASSWORD rsync $FLAGS /share/ $rsyncurl/share/ --delete
+             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} /share/ "${rsyncurl}"/share/ --delete
             info "/share sync complete"
             echo ""
             warn "Syncing /ssl"
-             sshpass -p $RSYNC_PASSWORD rsync $FLAGS /ssl/ $rsyncurl/ssl/ --delete
+             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} /ssl/ "${rsyncurl}"/ssl/ --delete
             info "/ssl sync complete"
             echo ""
         else
-            echo $RSYNC_EXCLUDE | tr -s ", " "\n" > /tmp/rsync_exclude.txt
+            echo "${RSYNC_EXCLUDE}" | tr -s ", " "\n" > /tmp/rsync_exclude.txt
             info "Files you excluded will be displayed below:"
             cat /tmp/rsync_exclude.txt
             info "Starting rsync"
             warn "Syncing /config"
-             sshpass -p $RSYNC_PASSWORD rsync $FLAGS --exclude-from='/tmp/rsync_exclude.txt' --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ $rsyncurl/config/ --delete
+             sshpass -p "${RSYNC_PASSWORD}" rsync $FLAGS --exclude-from='/tmp/rsync_exclude.txt' --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ "${rsyncurl}"/config/ --delete
             info "/config sync complete"
             echo ""
             warn "Syncing /addons"
-             sshpass -p $RSYNC_PASSWORD rsync $FLAGS --exclude-from='/tmp/rsync_exclude.txt' /addons/ $rsyncurl/addons/ --delete
+             sshpass -p "${RSYNC_PASSWORD}" rsync $FLAGS --exclude-from='/tmp/rsync_exclude.txt' /addons/ "${rsyncurl}"/addons/ --delete
             info "/addons sync complete"
             echo ""
             warn "Syncing /backup"
-             sshpass -p $RSYNC_PASSWORD rsync $FLAGS --exclude-from='/tmp/rsync_exclude.txt' /backup/ $rsyncurl/backup/ --delete
+             sshpass -p "${RSYNC_PASSWORD}" rsync $FLAGS --exclude-from='/tmp/rsync_exclude.txt' /backup/ "${rsyncurl}"/backup/ --delete
             info "/backup sync complete"
             echo ""
             warn "Syncing /share"
-             sshpass -p $RSYNC_PASSWORD rsync $FLAGS --exclude-from='/tmp/rsync_exclude.txt' /share/ $rsyncurl/share/ --delete
+             sshpass -p "${RSYNC_PASSWORD}" rsync $FLAGS --exclude-from='/tmp/rsync_exclude.txt' /share/ "${rsyncurl}"/share/ --delete
             info "/share sync complete"
             echo ""
             warn "Syncing /ssl"
-             sshpass -p $RSYNC_PASSWORD rsync $FLAGS --exclude-from='/tmp/rsync_exclude.txt' /ssl/ $rsyncurl/ssl/ --delete
+             sshpass -p "${RSYNC_PASSWORD}" rsync $FLAGS --exclude-from='/tmp/rsync_exclude.txt' /ssl/ "${rsyncurl}"/ssl/ --delete
             info "/ssl sync complete"
             echo ""
         fi
@@ -153,8 +154,8 @@ function rsync_folders {
 }
 
 function rclone_backups {
-    if [ "$RCLONE_ENABLED" = true ] ; then
-        cd /backup/
+    if [ "${RCLONE_ENABLED}" = true ] ; then
+        cd /backup/ || exit
         mkdir -p ~/.config/rclone/
         cp -a /ssl/rclone.conf ~/.config/rclone/rclone.conf
         echo "Starting rclone"
@@ -162,28 +163,28 @@ function rclone_backups {
             if [ "$FRIENDLY_NAME" = true ] ; then
                 if [[ -z $ZIP_PASSWORD  ]]; then
                     warn "Copying ${slug}.tar to ${RCLONE_REMOTE_DIRECTORY}/${name}.tar"
-                    rclone copyto ${slug}.tar ${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}/"${name}".tar
+                    rclone copyto "${slug}".tar "${RCLONE_REMOTE}":"${RCLONE_REMOTE_DIRECTORY}"/"${name}".tar
                     info "Finished rclone copy"
                 else
                     warn "Copying ${slug}.zip to ${RCLONE_REMOTE_DIRECTORY}/${name}.zip"
-                    rclone copyto ${slug}.zip ${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}/"${name}".zip
+                    rclone copyto "${slug}".zip "${RCLONE_REMOTE}":"${RCLONE_REMOTE_DIRECTORY}"/"${name}".zip
                     info "Finished rclone copy"
                 fi
             else
                 if [[ -z $ZIP_PASSWORD  ]]; then
                     warn "Copying ${slug}.tar to ${RCLONE_REMOTE_DIRECTORY}/${slug}.tar"
-                    rclone copy ${slug}.tar ${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}
+                    rclone copy "${slug}".tar "${RCLONE_REMOTE}":"${RCLONE_REMOTE_DIRECTORY}"
                     info "Finished rclone copy"
                 else
                     warn "Copying ${slug}.zip to ${RCLONE_REMOTE_DIRECTORY}/${slug}.zip"
-                    rclone copy ${slug}.zip ${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}
+                    rclone copy "${slug}".zip "${RCLONE_REMOTE}":"${RCLONE_REMOTE_DIRECTORY}"
                     info "Finished rclone copy"
                 fi
             fi
         fi
-        if [ "$RCLONE_SYNC" = true ] ; then
+        if [ "${RCLONE_SYNC}" = true ] ; then
             warn "Syncing Backups"
-            rclone sync . ${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}
+            rclone sync . "${RCLONE_REMOTE}":"${RCLONE_REMOTE_DIRECTORY}"
             info "Finished rclone sync"
         fi
         if [ "$RCLONE_RESTORE" = true ] ; then
@@ -191,7 +192,7 @@ function rclone_backups {
             RESTORENAME="restore-${DATEFORMAT}"
             mkdir -p "${RESTORENAME}"
             warn "Restoring Backups to ${RESTORENAME}"
-            rclone copyto ${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY} ${RESTORENAME}/
+            rclone copyto "${RCLONE_REMOTE}":"${RCLONE_REMOTE_DIRECTORY}" "${RESTORENAME}"/
             info "Finished rclone restore"
         fi
     fi
@@ -213,10 +214,10 @@ function delete-local-backup {
             head -n "${KEEP_LOCAL_BACKUP}" | tail -n 1 | xargs date -D "%Y-%m-%dT%T" +%s --date )
 
         ha backups list --raw-json | jq -c .data.backups[] | while read backup; do
-            if [[ $(echo ${backup} | jq .date | xargs date -D "%Y-%m-%dT%T" +%s --date ) -lt ${last_date_to_keep} ]]; then
-                warn "Deleting local backup: $(echo ${backup} | jq -r .slug)"
-                ha backups remove "$(echo ${backup} | jq -r .slug)"
-                info "Finished deleting local backup: $(echo ${backup} | jq -r .slug)"
+            if [[ $(echo "${backup}" | jq .date | xargs date -D "%Y-%m-%dT%T" +%s --date ) -lt ${last_date_to_keep} ]]; then
+                warn "Deleting local backup: $(echo "${backup}" | jq -r .slug)"
+                ha backups remove "$(echo "${backup}" | jq -r .slug)"
+                info "Finished deleting local backup: $(echo "${backup}" | jq -r .slug)"
             fi
         done
 
