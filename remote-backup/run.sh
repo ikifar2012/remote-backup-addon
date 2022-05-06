@@ -213,7 +213,7 @@ function delete-local-backup {
         last_date_to_keep=$(ha backups list --raw-json | jq .data.backups[].date | sort -r | \
             head -n "${KEEP_LOCAL_BACKUP}" | tail -n 1 | xargs date -D "%Y-%m-%dT%T" +%s --date )
 
-        ha backups list --raw-json | jq -c .data.backups[] | while read backup; do
+        ha backups list --raw-json | jq -c .data.backups[] | while read -r backup; do
             if [[ $(echo "${backup}" | jq .date | xargs date -D "%Y-%m-%dT%T" +%s --date ) -lt ${last_date_to_keep} ]]; then
                 warn "Deleting local backup: $(echo "${backup}" | jq -r .slug)"
                 ha backups remove "$(echo "${backup}" | jq -r .slug)"
