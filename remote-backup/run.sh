@@ -8,6 +8,7 @@ SSH_HOST=$(bashio::config "ssh_host")
 SSH_PORT=$(bashio::config "ssh_port")
 SSH_USER=$(bashio::config "ssh_user")
 SSH_KEY=$(bashio::config "ssh_key")
+SSH_HOST_KEY_ALGORITHMS=$(bashio::config "ssh_host_key_algorithms")
 REMOTE_DIRECTORY=$(bashio::config "remote_directory")
 ZIP_PASSWORD=$(bashio::config 'zip_password')
 KEEP_LOCAL_BACKUP=$(bashio::config 'keep_local_backup')
@@ -48,7 +49,9 @@ function add-ssh-key {
             echo "    User ${SSH_USER}"
             echo "    Port ${SSH_PORT}"
             echo "    StrictHostKeyChecking no"
-
+        if [ -z "${SSH_HOST_KEY_ALGORITHMS}" ] ; then
+            echo "    HostKeyAlgorithms ${SSH_HOST_KEY_ALGORITHMS}"
+        fi
         ) > "${HOME}/.ssh/config"
 
         chmod 600 "${HOME}/.ssh/config"

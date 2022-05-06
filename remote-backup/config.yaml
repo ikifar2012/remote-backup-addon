@@ -1,5 +1,5 @@
 name: Remote Backup
-version: '2022.1.1'
+version: "2022.5.0"
 slug: remote_backup
 description: Automatically create and backup HA backups using SCP
 url: https://addons.mathesonsteplock.ca/docs/addons/remote-backup/basic-config
@@ -24,26 +24,27 @@ options:
   ssh_enabled: true
   friendly_name: true
   custom_prefix: Automated backup
-  ssh_host: ''
+  ssh_host: ""
   ssh_port: 22
-  ssh_user: ''
-  ssh_key: ''
-  remote_directory: ''
-  zip_password: ''
-  keep_local_backup: ''
+  ssh_user: ""
+  ssh_key: ""
+  ssh_host_key_algorithms: ""
+  remote_directory: ""
+  zip_password: ""
+  keep_local_backup: ""
   rsync_enabled: false
   rsync_verbose: false
-  rsync_host: ''
+  rsync_host: ""
   rsync_rootfolder: hassio-sync
-  rsync_exclude: ''
-  rsync_user: ''
-  rsync_password: ''
+  rsync_exclude: ""
+  rsync_user: ""
+  rsync_password: ""
   rclone_enabled: false
   rclone_copy: false
   rclone_sync: false
   rclone_restore: false
-  rclone_remote: ''
-  rclone_remote_directory: ''
+  rclone_remote: ""
+  rclone_remote_directory: ""
 schema:
   ssh_enabled: bool
   friendly_name: bool
@@ -52,6 +53,7 @@ schema:
   ssh_port: int
   ssh_user: str
   ssh_key: str
+  ssh_host_key_algorithms: str
   remote_directory: str
   zip_password: str
   keep_local_backup: match(^(all|[+]?\d*)$)
