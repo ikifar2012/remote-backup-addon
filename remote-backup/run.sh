@@ -53,7 +53,7 @@ function add-ssh-key {
         chmod 600 "${HOME}/.ssh/config"
         chmod 644 "${HOME}/.ssh/id_rsa.pub"
         info "SSH key added"
-    fi    
+    fi
 }
 
 function create-local-backup {
