@@ -107,7 +107,7 @@ function rsync_folders {
         fi
         if [ -z "$RSYNC_EXCLUDE" ]; then
             warn "Syncing /config"
-             sshpass -p "${RSYNC_PASSWORD}" rsync $FLAGS --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ "${rsyncurl}"/config/ --delete
+             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ "${rsyncurl}"/config/ --delete
             info "/config sync complete"
             echo ""
             warn "Syncing /addons"
@@ -132,23 +132,23 @@ function rsync_folders {
             cat /tmp/rsync_exclude.txt
             info "Starting rsync"
             warn "Syncing /config"
-             sshpass -p "${RSYNC_PASSWORD}" rsync $FLAGS --exclude-from='/tmp/rsync_exclude.txt' --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ "${rsyncurl}"/config/ --delete
+             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ "${rsyncurl}"/config/ --delete
             info "/config sync complete"
             echo ""
             warn "Syncing /addons"
-             sshpass -p "${RSYNC_PASSWORD}" rsync $FLAGS --exclude-from='/tmp/rsync_exclude.txt' /addons/ "${rsyncurl}"/addons/ --delete
+             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' /addons/ "${rsyncurl}"/addons/ --delete
             info "/addons sync complete"
             echo ""
             warn "Syncing /backup"
-             sshpass -p "${RSYNC_PASSWORD}" rsync $FLAGS --exclude-from='/tmp/rsync_exclude.txt' /backup/ "${rsyncurl}"/backup/ --delete
+             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' /backup/ "${rsyncurl}"/backup/ --delete
             info "/backup sync complete"
             echo ""
             warn "Syncing /share"
-             sshpass -p "${RSYNC_PASSWORD}" rsync $FLAGS --exclude-from='/tmp/rsync_exclude.txt' /share/ "${rsyncurl}"/share/ --delete
+             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' /share/ "${rsyncurl}"/share/ --delete
             info "/share sync complete"
             echo ""
             warn "Syncing /ssl"
-             sshpass -p "${RSYNC_PASSWORD}" rsync $FLAGS --exclude-from='/tmp/rsync_exclude.txt' /ssl/ "${rsyncurl}"/ssl/ --delete
+             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' /ssl/ "${rsyncurl}"/ssl/ --delete
             info "/ssl sync complete"
             echo ""
         fi
