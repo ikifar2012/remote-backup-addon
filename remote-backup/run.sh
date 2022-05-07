@@ -49,7 +49,7 @@ function add-ssh-key {
             echo "    User ${SSH_USER}"
             echo "    Port ${SSH_PORT}"
             echo "    StrictHostKeyChecking no"
-        if [ -z "${SSH_HOST_KEY_ALGORITHMS}" ] ; then
+        if [ -n "${SSH_HOST_KEY_ALGORITHMS}" ] ; then
             echo "    HostKeyAlgorithms ${SSH_HOST_KEY_ALGORITHMS}"
         fi
         ) > "${HOME}/.ssh/config"
