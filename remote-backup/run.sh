@@ -9,6 +9,8 @@ SSH_PORT=$(bashio::config "ssh_port")
 SSH_USER=$(bashio::config "ssh_user")
 SSH_KEY=$(bashio::config "ssh_key")
 SSH_HOST_KEY_ALGORITHMS=$(bashio::config "ssh_host_key_algorithms")
+INCLUDE_FOLDERS=$(bashio::config "include_folders")
+INCLUDE_ADDONS=$(bashio::config "include_addons")
 REMOTE_DIRECTORY=$(bashio::config "remote_directory")
 ZIP_PASSWORD=$(bashio::config 'zip_password')
 KEEP_LOCAL_BACKUP=$(bashio::config 'keep_local_backup')
@@ -63,7 +65,33 @@ function add-ssh-key {
 function create-local-backup {
     name="${CUSTOM_PREFIX} $(date +'%Y-%m-%d %H-%M')"
     warn "Creating local backup: \"${name}\""
-    slug=$(ha backups new --raw-json --name="${name}" | jq --raw-output '.data.slug')
+    if [ -n "${INCLUDE_ADDONS}" ] ; then
+        info "Creating partial backup"
+        ADDONS=""
+        for addon in ${INCLUDE_ADDONS} ; do
+        ADDONS="${ADDONS} --addons=${addon}"
+        done
+    fi
+    if [ -n "${INCLUDE_FOLDERS}" ] ; then
+        info "Creating partial backup"
+        FOLDERS=""
+        for folder in ${INCLUDE_FOLDERS} ; do
+        FOLDERS="${FOLDERS} --folders=${folder}"
+        done
+    fi
+    if [ -n $FOLDERS ] && [ -n $ADDONS ] ; then
+        info "Creating partial backup"
+        slug=$(ha backups new --raw-json --name="${name}" "${ADDONS}" "${FOLDERS}" | jq --raw-output '.data.slug')
+    elif [ -n $FOLDERS ] ; then
+        info "Creating partial backup"
+        slug=$(ha backups new --raw-json --name="${name}" "${FOLDERS}" | jq --raw-output '.data.slug')
+    elif [ -n $ADDONS ] ; then
+        info "Creating partial backup"
+        slug=$(ha backups new --raw-json --name="${name}" "${ADDONS}" | jq --raw-output '.data.slug')
+    else
+        info "Creating full backup"
+        slug=$(ha backups new --raw-json --name="${name}" | jq --raw-output '.data.slug')
+    fi
     info "Backup created: ${slug}"
 }
 

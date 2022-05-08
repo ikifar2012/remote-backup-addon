@@ -29,6 +29,8 @@ options:
   ssh_user: ""
   ssh_key: ""
   ssh_host_key_algorithms: ""
+  include_folders: []
+  include_addons: []
   remote_directory: ""
   zip_password: ""
   keep_local_backup: ""
@@ -54,6 +56,8 @@ schema:
   ssh_user: str
   ssh_key: str
   ssh_host_key_algorithms: str
+  include_folders: list
+  include_addons: list
   remote_directory: str
   zip_password: str
   keep_local_backup: match(^(all|[+]?\d*)$)
