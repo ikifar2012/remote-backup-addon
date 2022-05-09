@@ -116,7 +116,7 @@ function copy-backup-to-remote {
             info "Backup copied to ${REMOTE_DIRECTORY}/${slug}.zip on ${SSH_HOST}"
         fi
         if [ "${FRIENDLY_NAME}" = true ] ; then
-            if [[ -z "${ZIP_PASSWORD} " ]]; then
+            if [[ -z "${ZIP_PASSWORD}" ]]; then
                 warn "Renaming ${slug}.tar to ${name}.tar"
                 ssh remote "mv \"${REMOTE_DIRECTORY}/${slug}.tar\" \"${REMOTE_DIRECTORY}/${name}.tar\""
                 info "Backup renamed to ${REMOTE_DIRECTORY}/${name}.tar on ${SSH_HOST}"
