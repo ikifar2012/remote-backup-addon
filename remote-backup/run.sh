@@ -69,6 +69,7 @@ function create-local-backup {
         info "Creating partial backup"
         ADDONS=""
         for addon in ${INCLUDE_ADDONS} ; do
+        info "Including ${addon}"
         ADDONS="${ADDONS} --addons=${addon}"
         done
     fi
@@ -76,17 +77,21 @@ function create-local-backup {
         info "Creating partial backup"
         FOLDERS=""
         for folder in ${INCLUDE_FOLDERS} ; do
+        info "Including ${folder}"
         FOLDERS="${FOLDERS} --folders=${folder}"
         done
     fi
     if [ -n $FOLDERS ] && [ -n $ADDONS ] ; then
         info "Creating partial backup"
+        info "Including ${FOLDERS} and ${ADDONS}"
         slug=$(ha backups new --raw-json --name="${name}" "${ADDONS}" "${FOLDERS}" | jq --raw-output '.data.slug')
     elif [ -n $FOLDERS ] ; then
         info "Creating partial backup"
+        info "Including ${FOLDERS}"
         slug=$(ha backups new --raw-json --name="${name}" "${FOLDERS}" | jq --raw-output '.data.slug')
     elif [ -n $ADDONS ] ; then
         info "Creating partial backup"
+        info "Including ${ADDONS}"
         slug=$(ha backups new --raw-json --name="${name}" "${ADDONS}" | jq --raw-output '.data.slug')
     else
         info "Creating full backup"
