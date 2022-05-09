@@ -221,7 +221,7 @@ function rclone_backups {
         fi
         if [ "${RCLONE_SYNC}" = true ] ; then
             warn "Syncing Backups"
-            rclone sync . "${RCLONE_REMOTE}":"${RCLONE_REMOTE_DIRECTORY}"
+            rclone sync . ${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}
             info "Finished rclone sync"
         fi
         if [ "${RCLONE_RESTORE}" = true ] ; then
