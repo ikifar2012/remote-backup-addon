@@ -200,11 +200,11 @@ function rclone_backups {
             if [ "$FRIENDLY_NAME" = true ] ; then
                 if [[ -z $ZIP_PASSWORD  ]]; then
                     warn "Copying ${slug}.tar to ${RCLONE_REMOTE_DIRECTORY}/${name}.tar"
-                    rclone copyto "${slug}".tar ${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}/"${name}".tar
+                    rclone copyto ${slug}.tar ${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}/"${name}".tar
                     info "Finished rclone copy"
                 else
                     warn "Copying ${slug}.zip to ${RCLONE_REMOTE_DIRECTORY}/${name}.zip"
-                    rclone copyto "${slug}".zip ${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}/"${name}".zip
+                    rclone copyto ${slug}.zip ${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}/"${name}".zip
                     info "Finished rclone copy"
                 fi
             else

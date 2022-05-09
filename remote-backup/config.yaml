@@ -4,7 +4,6 @@ slug: remote_backup
 description: Automatically create and backup HA backups using SCP
 url: https://addons.mathesonsteplock.ca/docs/addons/remote-backup/basic-config
 startup: once
-image: ikifar/remote-backup-{arch}
 boot: manual
 arch:
   - aarch64
@@ -48,29 +47,29 @@ options:
   rclone_remote: ""
   rclone_remote_directory: ""
 schema:
-  ssh_enabled: bool
-  friendly_name: bool
-  custom_prefix: str
-  ssh_host: str
-  ssh_port: int
-  ssh_user: str
-  ssh_key: str
-  ssh_host_key_algorithms: str
-  include_folders: str
-  include_addons: str
-  remote_directory: str
-  zip_password: str
-  keep_local_backup: match(^(all|[+]?\d*)$)
-  rsync_enabled: bool
-  rsync_verbose: bool
-  rsync_host: str
-  rsync_rootfolder: str
-  rsync_exclude: str
-  rsync_user: str
-  rsync_password: str
-  rclone_enabled: bool
-  rclone_copy: bool
-  rclone_sync: bool
-  rclone_restore: bool
-  rclone_remote: str
-  rclone_remote_directory: str
+  ssh_enabled: bool?
+  friendly_name: bool?
+  custom_prefix: str?
+  ssh_host: str?
+  ssh_port: int?
+  ssh_user: str?
+  ssh_key: str?
+  ssh_host_key_algorithms: str?
+  include_folders: str?
+  include_addons: str?
+  remote_directory: str?
+  zip_password: str?
+  keep_local_backup: int?
+  rsync_enabled: bool?
+  rsync_verbose: bool?
+  rsync_host: str?
+  rsync_rootfolder: str?
+  rsync_exclude: str?
+  rsync_user: str?
+  rsync_password: str?
+  rclone_enabled: bool?
+  rclone_copy: bool?
+  rclone_sync: bool?
+  rclone_restore: bool?
+  rclone_remote: str?
+  rclone_remote_directory: str?
