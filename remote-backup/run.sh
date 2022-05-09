@@ -63,11 +63,13 @@ function add-ssh-key {
 }
 
 function create-local-backup {
+    # Bind variables
+    FOLDERS=""
+    ADDONS=""
     name="${CUSTOM_PREFIX} $(date +'%Y-%m-%d %H-%M')"
     warn "Creating local backup: \"${name}\""
     if [ -n "${INCLUDE_ADDONS}" ] ; then
         info "Creating partial backup"
-        ADDONS=""
         for addon in ${INCLUDE_ADDONS} ; do
         info "Including ${addon}"
         ADDONS="${ADDONS} --addons=${addon}"
@@ -75,21 +77,20 @@ function create-local-backup {
     fi
     if [ -n "${INCLUDE_FOLDERS}" ] ; then
         info "Creating partial backup"
-        FOLDERS=""
         for folder in ${INCLUDE_FOLDERS} ; do
-        info "Including ${folder}"
-        FOLDERS="${FOLDERS} --folders=${folder}"
+            info "Including ${folder}"
+            FOLDERS="${FOLDERS} --folders=${folder}"
         done
     fi
-    if [ -n $FOLDERS ] && [ -n $ADDONS ] ; then
+    if [ -n "${FOLDERS}" ] && [ -n "${ADDONS}" ] ; then
         info "Creating partial backup"
         info "Including ${FOLDERS} and ${ADDONS}"
         slug=$(ha backups new --raw-json --name="${name}" "${ADDONS}" "${FOLDERS}" | jq --raw-output '.data.slug')
-    elif [ -n $FOLDERS ] ; then
+    elif [ -n "${FOLDERS}" ] ; then
         info "Creating partial backup"
         info "Including ${FOLDERS}"
         slug=$(ha backups new --raw-json --name="${name}" "${FOLDERS}" | jq --raw-output '.data.slug')
-    elif [ -n $ADDONS ] ; then
+    elif [ -n "${ADDONS}" ] ; then
         info "Creating partial backup"
         info "Including ${ADDONS}"
         slug=$(ha backups new --raw-json --name="${name}" "${ADDONS}" | jq --raw-output '.data.slug')
@@ -104,7 +105,7 @@ function copy-backup-to-remote {
 
     if [ "$SSH_ENABLED" = true ] ; then
         cd /backup/ || exit
-        if [[ -z $ZIP_PASSWORD  ]]; then
+        if [[ -z "${ZIP_PASSWORD}" ]]; then
             warn "Copying ${slug}.tar to ${REMOTE_DIRECTORY} on ${SSH_HOST} using SCP"
             scp -F "${HOME}/.ssh/config" "${slug}.tar" remote:"${REMOTE_DIRECTORY}"
             info "Backup copied to ${REMOTE_DIRECTORY}/${slug}.tar on ${SSH_HOST}"
@@ -115,7 +116,7 @@ function copy-backup-to-remote {
             info "Backup copied to ${REMOTE_DIRECTORY}/${slug}.zip on ${SSH_HOST}"
         fi
         if [ "${FRIENDLY_NAME}" = true ] ; then
-            if [[ -z ${ZIP_PASSWORD}  ]]; then
+            if [[ -z "${ZIP_PASSWORD} " ]]; then
                 warn "Renaming ${slug}.tar to ${name}.tar"
                 ssh remote "mv \"${REMOTE_DIRECTORY}/${slug}.tar\" \"${REMOTE_DIRECTORY}/${name}.tar\""
                 info "Backup renamed to ${REMOTE_DIRECTORY}/${name}.tar on ${SSH_HOST}"
@@ -138,7 +139,7 @@ function rsync_folders {
         else
             FLAGS='-a'
         fi
-        if [ -z "$RSYNC_EXCLUDE" ]; then
+        if [ -z "${RSYNC_EXCLUDE}" ]; then
             warn "Syncing /config"
              sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ "${rsyncurl}"/config/ --delete
             info "/config sync complete"
@@ -207,7 +208,7 @@ function rclone_backups {
                     info "Finished rclone copy"
                 fi
             else
-                if [[ -z $ZIP_PASSWORD  ]]; then
+                if [[ -z "${ZIP_PASSWORD}"  ]]; then
                     warn "Copying ${slug}.tar to ${RCLONE_REMOTE_DIRECTORY}/${slug}.tar"
                     rclone copy "${slug}".tar "${RCLONE_REMOTE}":"${RCLONE_REMOTE_DIRECTORY}"
                     info "Finished rclone copy"
@@ -223,7 +224,7 @@ function rclone_backups {
             rclone sync . "${RCLONE_REMOTE}":"${RCLONE_REMOTE_DIRECTORY}"
             info "Finished rclone sync"
         fi
-        if [ "$RCLONE_RESTORE" = true ] ; then
+        if [ "${RCLONE_RESTORE}" = true ] ; then
             DATEFORMAT=$(date +%F)
             RESTORENAME="restore-${DATEFORMAT}"
             mkdir -p "${RESTORENAME}"
@@ -239,9 +240,9 @@ function delete-local-backup {
 
     ha backups reload
 
-    if [[ ${KEEP_LOCAL_BACKUP} == "all" ]]; then
+    if [[ "${KEEP_LOCAL_BACKUP}" == "all" ]]; then
         :
-    elif [[ -z ${KEEP_LOCAL_BACKUP} ]]; then
+    elif [[ -z "${KEEP_LOCAL_BACKUP}" ]]; then
         warn "Deleting local backup: ${slug}"
         ha backups remove "${slug}"
     else
