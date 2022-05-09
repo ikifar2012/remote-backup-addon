@@ -85,18 +85,18 @@ function create-local-backup {
     if [ -n "${FOLDERS}" ] && [ -n "${ADDONS}" ] ; then
         info "Creating partial backup"
         info "Including ${FOLDERS} and ${ADDONS}"
-        slug=$(ha backups new --raw-json --name=${name} ${ADDONS} ${FOLDERS} | jq --raw-output '.data.slug')
+        slug=$(ha backups new --raw-json --name="${name}" ${ADDONS} ${FOLDERS} | jq --raw-output '.data.slug')
     elif [ -n "${FOLDERS}" ] ; then
         info "Creating partial backup"
         info "Including ${FOLDERS}"
-        slug=$(ha backups new --raw-json --name=${name} ${FOLDERS} | jq --raw-output '.data.slug')
+        slug=$(ha backups new --raw-json --name="${name}" ${FOLDERS} | jq --raw-output '.data.slug')
     elif [ -n "${ADDONS}" ] ; then
         info "Creating partial backup"
         info "Including ${ADDONS}"
-        slug=$(ha backups new --raw-json --name=${name} ${ADDONS} | jq --raw-output '.data.slug')
+        slug=$(ha backups new --raw-json --name="${name}" ${ADDONS} | jq --raw-output '.data.slug')
     else
         info "Creating full backup"
-        slug=$(ha backups new --raw-json --name=${name} | jq --raw-output '.data.slug')
+        slug=$(ha backups new --raw-json --name="${name}" | jq --raw-output '.data.slug')
     fi
     info "Backup created: ${slug}"
 }
