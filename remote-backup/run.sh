@@ -1,5 +1,4 @@
 #!/usr/bin/env bashio
-set -x
 # parse inputs from options
 SSH_ENABLED=$(bashio::config "ssh_enabled")
 FRIENDLY_NAME=$(bashio::config "friendly_name")
