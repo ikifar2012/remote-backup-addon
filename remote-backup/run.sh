@@ -1,5 +1,6 @@
 #!/usr/bin/env bashio
 # parse inputs from options
+DEBUG=$(bashio::config 'debug')
 SSH_ENABLED=$(bashio::config "ssh_enabled")
 FRIENDLY_NAME=$(bashio::config "friendly_name")
 CUSTOM_PREFIX=$(bashio::config "custom_prefix")
@@ -92,7 +93,9 @@ function create-local-backup {
     fi
     if [ -n "${FOLDERS}" ] && [ -n "${ADDONS}" ] ; then
         info "Creating partial backup"
-        info "Including ${FOLDERS} and ${ADDONS}"
+        if [ "${DEBUG}" = true ] ; then
+            warn "Including ${FOLDERS} and ${ADDONS}"
+        fi
         slug=$(ha backups new --raw-json --name="${name}" ${ADDONS} ${FOLDERS} | jq --raw-output '.data.slug')
     elif [ -n "${FOLDERS}" ] ; then
         info "Creating partial backup"

@@ -21,6 +21,7 @@ map:
   - ssl
   - backup:rw
 options:
+  debug: false
   ssh_enabled: true
   friendly_name: true
   custom_prefix: Automated backup
@@ -48,6 +49,7 @@ options:
   rclone_remote: ""
   rclone_remote_directory: ""
 schema:
+  debug: bool?
   ssh_enabled: bool?
   friendly_name: bool?
   custom_prefix: str?
