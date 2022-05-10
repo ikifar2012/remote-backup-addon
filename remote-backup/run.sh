@@ -80,13 +80,12 @@ function create-local-backup {
             fi
         done
         done
-        info "Creating partial backup"
-        for folder in ${EXCLUDE_FOLDERS} ; do
-        for base_folder in ${BASE_FOLDERS} ; do
-            if [ "${folder}" = "${base_folder}" ] ; then
+        for folder in ${BASE_FOLDERS} ; do
+        for excluded_folder in ${EXCLUDE_FOLDERS} ; do
+            if [ "${folder}" = "${excluded_folder}" ] ; then
                 warn "Excluding folder: ${folder}"
-            else
-                FOLDERS="${FOLDERS}--folders=${folder} "
+                else
+                    FOLDERS="${FOLDERS}--folders=${folder} "
             fi
         done
         done
