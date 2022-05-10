@@ -9,8 +9,8 @@ SSH_PORT=$(bashio::config "ssh_port")
 SSH_USER=$(bashio::config "ssh_user")
 SSH_KEY=$(bashio::config "ssh_key")
 SSH_HOST_KEY_ALGORITHMS=$(bashio::config "ssh_host_key_algorithms")
-INCLUDE_FOLDERS=$(bashio::config "include_folders")
-INCLUDE_ADDONS=$(bashio::config "include_addons")
+EXCLUDE_FOLDERS=$(bashio::config "exclude_folders")
+EXCLUDE_ADDONS=$(bashio::config "exclude_addons")
 REMOTE_DIRECTORY=$(bashio::config "remote_directory")
 ZIP_PASSWORD=$(bashio::config 'zip_password')
 KEEP_LOCAL_BACKUP=$(bashio::config 'keep_local_backup')
@@ -66,20 +66,36 @@ function create-local-backup {
     # Bind variables
     FOLDERS=""
     ADDONS=""
+    INSTALLED_ADDONS=$(bashio::addons.installed)
+    BASE_FOLDERS=$(ls /)
+    echo "${INSTALLED_ADDONS}"
     name="${CUSTOM_PREFIX} $(date +'%Y-%m-%d %H-%M')"
     warn "Creating local backup: \"${name}\""
-    if [ -n "${INCLUDE_ADDONS}" ] ; then
+    if [ -n "${EXCLUDE_ADDONS}" ] ; then
         info "Creating partial backup"
-        for addon in ${INCLUDE_ADDONS} ; do
-        info "Including ${addon}"
-        ADDONS="${ADDONS} --addons=${addon}"
+        for addon in ${EXCLUDE_ADDONS} ; do
+            for installed_addon in ${INSTALLED_ADDONS} ; do
+                if [ "${addon}" = "${installed_addon}" ] ; then
+                    warn "Excluding addon: \"${addon}\""
+                else
+                    info "Including ${addon}"
+                    ADDONS="${ADDONS} --addons=${addon}"
+                fi
+                done
+
         done
     fi
-    if [ -n "${INCLUDE_FOLDERS}" ] ; then
+    if [ -n "${EXCLUDE_FOLDERS}" ] ; then
         info "Creating partial backup"
-        for folder in ${INCLUDE_FOLDERS} ; do
-            info "Including ${folder}"
-            FOLDERS="${FOLDERS} --folders=${folder}"
+        for folder in ${EXCLUDE_FOLDERS} ; do
+            for base_folder in ${BASE_FOLDERS} ; do
+                if [ "${folder}" = "${base_folder}" ] ; then
+                    warn "Excluding folder: \"${folder}\""
+                else
+                    info "Including ${folder}"
+                    FOLDERS="${FOLDERS} --folders=${folder}"
+                fi
+                done
         done
     fi
     if [ -n "${FOLDERS}" ] && [ -n "${ADDONS}" ] ; then
