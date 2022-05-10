@@ -1,5 +1,5 @@
 #!/usr/bin/env bashio
-
+set -x
 # parse inputs from options
 SSH_ENABLED=$(bashio::config "ssh_enabled")
 FRIENDLY_NAME=$(bashio::config "friendly_name")
@@ -66,36 +66,30 @@ function create-local-backup {
     # Bind variables
     FOLDERS=""
     ADDONS=""
+    BASE_FOLDERS="addons/local homeassistant media share ssl"
     INSTALLED_ADDONS=$(bashio::addons.installed)
-    BASE_FOLDERS=$(ls /)
-    echo "${INSTALLED_ADDONS}"
     name="${CUSTOM_PREFIX} $(date +'%Y-%m-%d %H-%M')"
     warn "Creating local backup: \"${name}\""
-    if [ -n "${EXCLUDE_ADDONS}" ] ; then
+    if [ -n "${EXCLUDE_ADDONS}" ] || [ -n "${EXCLUDE_FOLDERS}" ] ; then
         info "Creating partial backup"
-        for addon in ${EXCLUDE_ADDONS} ; do
-            for installed_addon in ${INSTALLED_ADDONS} ; do
-                if [ "${addon}" = "${installed_addon}" ] ; then
-                    warn "Excluding addon: \"${addon}\""
+        for addon in ${INSTALLED_ADDONS} ; do
+        for excluded_addon in ${EXCLUDE_ADDONS} ; do
+            if [ "${addon}" = "${excluded_addon}" ] ; then
+                warn "Excluding addon: ${addon}"
                 else
-                    info "Including ${addon}"
-                    ADDONS="${ADDONS} --addons=${addon}"
-                fi
-                done
-
+                    ADDONS="${ADDONS}--addons=${addon} "
+            fi
         done
-    fi
-    if [ -n "${EXCLUDE_FOLDERS}" ] ; then
+        done
         info "Creating partial backup"
         for folder in ${EXCLUDE_FOLDERS} ; do
-            for base_folder in ${BASE_FOLDERS} ; do
-                if [ "${folder}" = "${base_folder}" ] ; then
-                    warn "Excluding folder: \"${folder}\""
-                else
-                    info "Including ${folder}"
-                    FOLDERS="${FOLDERS} --folders=${folder}"
-                fi
-                done
+        for base_folder in ${BASE_FOLDERS} ; do
+            if [ "${folder}" = "${base_folder}" ] ; then
+                warn "Excluding folder: ${folder}"
+            else
+                FOLDERS="${FOLDERS}--folders=${folder} "
+            fi
+        done
         done
     fi
     if [ -n "${FOLDERS}" ] && [ -n "${ADDONS}" ] ; then
