@@ -1,6 +1,7 @@
 # 2022.5.0
 
 - Updated base image to 11.1.2
+- Updated HA CLI to 4.17.0
 - Added support for `HostKeyAlgorithms` hopefully fixing #37
 - Added support for excluding addons from backup
 - Added support for excluding folders from backup
