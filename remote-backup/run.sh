@@ -74,15 +74,18 @@ function create-local-backup {
     if [ -n "${EXCLUDE_ADDONS}" ] || [ -n "${EXCLUDE_FOLDERS}" ] ; then
         info "Creating partial backup"
         set -x
-        for addon in ${INSTALLED_ADDONS} ; do
-            for excluded_addon in ${EXCLUDE_ADDONS} ; do
-                if [ "${addon}" = "${excluded_addon}" ] ; then
-                    warn "Excluding addon: ${addon}"
+        for ha_addon in ${INSTALLED_ADDONS}
+        do
+            for excluded_addon in ${EXCLUDE_ADDONS}
+            do
+                if [ "${ha_addon}" = "${excluded_addon}" ] ; then
+                    warn "Excluding addon: ${ha_addon}"
                     else
-                        ADDONS="${ADDONS}--addons=${addon} "
+                        ADDONS="${ADDONS}--addons=${ha_addon} "
                 fi
+            done
         done
-        done
+
         for folder in ${BASE_FOLDERS} ; do
         for excluded_folder in ${EXCLUDE_FOLDERS} ; do
             if [ "${folder}" = "${excluded_folder}" ] ; then
