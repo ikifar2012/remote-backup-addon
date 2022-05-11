@@ -21,6 +21,8 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Publish
         uses: home-assistant/builder@master
+        env:
+          - CAS_API_KEY: ${{ secrets.CAS_API_KEY }}
         with:
           args: |
             --all \
