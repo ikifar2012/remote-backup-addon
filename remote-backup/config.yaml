@@ -12,6 +12,7 @@ arch:
   - armhf
   - armv7
   - i386
+homeassistant: "2021.9.0"
 hassio_api: true
 hassio_role: manager
 map:
