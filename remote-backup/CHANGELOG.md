@@ -6,6 +6,7 @@
 - Added support for excluding folders from backup
 - Fixed shellcheck warnings
 - Added minimum Home Assistant version
+- Sign images with Codenotary CAS
 
 **Full Changelog**: https://github.com/ikifar2012/remote-backup-addon/compare/2022.1.1...2022.5.0
 
