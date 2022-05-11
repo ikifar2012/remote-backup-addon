@@ -67,18 +67,20 @@ function create-local-backup {
     FOLDERS=""
     ADDONS=""
     BASE_FOLDERS="addons/local homeassistant media share ssl"
-    INSTALLED_ADDONS=$(bashio::addons.installed)
+    UNFORMATTED_INSTALLED_ADDONS=$(bashio::addons.installed)
+    INSTALLED_ADDONS=$(echo "${UNFORMATTED_INSTALLED_ADDONS}" | tr '\n' ' ')
     name="${CUSTOM_PREFIX} $(date +'%Y-%m-%d %H-%M')"
     warn "Creating local backup: \"${name}\""
     if [ -n "${EXCLUDE_ADDONS}" ] || [ -n "${EXCLUDE_FOLDERS}" ] ; then
         info "Creating partial backup"
+        set -x
         for addon in ${INSTALLED_ADDONS} ; do
-        for excluded_addon in ${EXCLUDE_ADDONS} ; do
-            if [ "${addon}" = "${excluded_addon}" ] ; then
-                warn "Excluding addon: ${addon}"
-                else
-                    ADDONS="${ADDONS}--addons=${addon} "
-            fi
+            for excluded_addon in ${EXCLUDE_ADDONS} ; do
+                if [ "${addon}" = "${excluded_addon}" ] ; then
+                    warn "Excluding addon: ${addon}"
+                    else
+                        ADDONS="${ADDONS}--addons=${addon} "
+                fi
         done
         done
         for folder in ${BASE_FOLDERS} ; do
