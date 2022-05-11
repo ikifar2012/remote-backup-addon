@@ -34,7 +34,7 @@ options:
   exclude_addons: ""
   remote_directory: ""
   zip_password: ""
-  keep_local_backup: ""
+  keep_local_backup: "all"
   rsync_enabled: false
   rsync_verbose: false
   rsync_host: ""
