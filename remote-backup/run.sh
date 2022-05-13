@@ -73,8 +73,10 @@ function create-local-backup {
     if [ -n "${EXCLUDE_ADDONS}" ] || [ -n "${EXCLUDE_FOLDERS}" ] ; then
         EXCLUDED_FOLDERS=$(echo "${EXCLUDE_FOLDERS}" | tr ',' '\n')
         EXCLUDED_ADDONS=$(echo "${EXCLUDE_ADDONS}" | tr ',' '\n')
-        echo "Excluded folders: ${EXCLUDED_FOLDERS}"
-        echo "Excluded addons: ${EXCLUDED_ADDONS}"
+        if [ "$DEBUG" = true ] ; then
+            warn "\n Excluded folders: \n ${EXCLUDED_FOLDERS}\n---------------"
+            warn "\n Excluded addons: \n ${EXCLUDED_ADDONS}\n----------------"
+        fi
         UNFORMATTED_FOLDERS="${BASE_FOLDERS}"
         UNFORMATTED_ADDONS="${INSTALLED_ADDONS}"
     if [ -n "${EXCLUDED_FOLDERS}" ] ; then
