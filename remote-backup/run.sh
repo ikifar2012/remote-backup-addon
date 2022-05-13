@@ -67,49 +67,39 @@ function create-local-backup {
     FOLDERS=""
     ADDONS=""
     BASE_FOLDERS="addons/local homeassistant media share ssl"
-    UNFORMATTED_INSTALLED_ADDONS=$(bashio::addons.installed)
-    INSTALLED_ADDONS=$(echo "${UNFORMATTED_INSTALLED_ADDONS}" | tr '\n' ' ')
+    INSTALLED_ADDONS=$(bashio::addons.installed)
     name="${CUSTOM_PREFIX} $(date +'%Y-%m-%d %H-%M')"
     warn "Creating local backup: \"${name}\""
     if [ -n "${EXCLUDE_ADDONS}" ] || [ -n "${EXCLUDE_FOLDERS}" ] ; then
-        info "Creating partial backup"
-        set -x
-        for ha_addon in ${INSTALLED_ADDONS}
-        do
-            for excluded_addon in ${EXCLUDE_ADDONS}
-            do
-                if [ "${ha_addon}" = "${excluded_addon}" ] ; then
-                    warn "Excluding addon: ${ha_addon}"
-                    else
-                        ADDONS="${ADDONS}--addons=${ha_addon} "
-                fi
-            done
-        done
-
-        for folder in ${BASE_FOLDERS} ; do
-        for excluded_folder in ${EXCLUDE_FOLDERS} ; do
-            if [ "${folder}" = "${excluded_folder}" ] ; then
-                warn "Excluding folder: ${folder}"
-                else
-                    FOLDERS="${FOLDERS}--folders=${folder} "
-            fi
-        done
+        EXCLUDED_FOLDERS=$(echo "${EXCLUDE_FOLDERS}" | tr ',' '\n')
+        EXCLUDED_ADDONS=$(echo "${EXCLUDE_ADDONS}" | tr ',' '\n')
+        echo "Excluded folders: ${EXCLUDED_FOLDERS}"
+        echo "Excluded addons: ${EXCLUDED_ADDONS}"
+        UNFORMATTED_FOLDERS="${BASE_FOLDERS}"
+        UNFORMATTED_ADDONS="${INSTALLED_ADDONS}"
+    if [ -n "${EXCLUDED_FOLDERS}" ] ; then
+        for folder in ${EXCLUDED_FOLDERS} ; do
+            UNFORMATTED_FOLDERS=$(echo "${UNFORMATTED_FOLDERS}" | sed -e "s/${folder}//g")
         done
     fi
-    if [ -n "${FOLDERS}" ] && [ -n "${ADDONS}" ] ; then
+    if [ -n "${EXCLUDED_ADDONS}" ] ; then
+        for addon in ${EXCLUDED_ADDONS} ; do
+            UNFORMATTED_ADDONS="$(echo "${UNFORMATTED_ADDONS}" | sed -e "s/${addon}//g")"
+        done
+    fi
+    if [ -n "${UNFORMATTED_ADDONS}" ] && [ -n "${UNFORMATTED_FOLDERS}" ] ; then
+        for addon in ${UNFORMATTED_ADDONS} ; do
+            ADDONS="${ADDONS}--addons ${addon} "
+        done
+        for folder in ${UNFORMATTED_FOLDERS} ; do
+            FOLDERS="${FOLDERS}--folders ${folder} "
+        done
+        fi
         info "Creating partial backup"
         if [ "${DEBUG}" = true ] ; then
             warn "Including ${FOLDERS} and ${ADDONS}"
         fi
         slug=$(ha backups new --raw-json --name="${name}" ${ADDONS} ${FOLDERS} | jq --raw-output '.data.slug')
-    elif [ -n "${FOLDERS}" ] ; then
-        info "Creating partial backup"
-        info "Including ${FOLDERS}"
-        slug=$(ha backups new --raw-json --name="${name}" ${FOLDERS} | jq --raw-output '.data.slug')
-    elif [ -n "${ADDONS}" ] ; then
-        info "Creating partial backup"
-        info "Including ${ADDONS}"
-        slug=$(ha backups new --raw-json --name="${name}" ${ADDONS} | jq --raw-output '.data.slug')
     else
         info "Creating full backup"
         slug=$(ha backups new --raw-json --name="${name}" | jq --raw-output '.data.slug')
