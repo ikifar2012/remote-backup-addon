@@ -1,10 +1,10 @@
 name: Remote Backup
-version: '2022.1.1'
+version: "2022.5.0"
 slug: remote_backup
 description: Automatically create and backup HA backups using SCP
+image: ikifar/remote-backup-{arch}
 url: https://addons.mathesonsteplock.ca/docs/addons/remote-backup/basic-config
 startup: once
-image: ikifar/remote-backup-{arch}
 boot: manual
 arch:
   - aarch64
@@ -12,6 +12,7 @@ arch:
   - armhf
   - armv7
   - i386
+homeassistant: "2021.9.0"
 hassio_api: true
 hassio_role: manager
 map:
@@ -21,50 +22,58 @@ map:
   - ssl
   - backup:rw
 options:
+  debug: false
   ssh_enabled: true
   friendly_name: true
   custom_prefix: Automated backup
-  ssh_host: ''
+  ssh_host: ""
   ssh_port: 22
-  ssh_user: ''
-  ssh_key: ''
-  remote_directory: ''
-  zip_password: ''
-  keep_local_backup: ''
+  ssh_user: ""
+  ssh_key: ""
+  ssh_host_key_algorithms: ""
+  exclude_folders: ""
+  exclude_addons: ""
+  remote_directory: ""
+  zip_password: ""
+  keep_local_backup: "all"
   rsync_enabled: false
   rsync_verbose: false
-  rsync_host: ''
+  rsync_host: ""
   rsync_rootfolder: hassio-sync
-  rsync_exclude: ''
-  rsync_user: ''
-  rsync_password: ''
+  rsync_exclude: ""
+  rsync_user: ""
+  rsync_password: ""
   rclone_enabled: false
   rclone_copy: false
   rclone_sync: false
   rclone_restore: false
-  rclone_remote: ''
-  rclone_remote_directory: ''
+  rclone_remote: ""
+  rclone_remote_directory: ""
 schema:
-  ssh_enabled: bool
-  friendly_name: bool
-  custom_prefix: str
-  ssh_host: str
-  ssh_port: int
-  ssh_user: str
-  ssh_key: str
-  remote_directory: str
-  zip_password: str
+  debug: bool?
+  ssh_enabled: bool?
+  friendly_name: bool?
+  custom_prefix: str?
+  ssh_host: str?
+  ssh_port: int?
+  ssh_user: str?
+  ssh_key: str?
+  ssh_host_key_algorithms: str?
+  exclude_folders: str?
+  exclude_addons: str?
+  remote_directory: str?
+  zip_password: str?
   keep_local_backup: match(^(all|[+]?\d*)$)
-  rsync_enabled: bool
-  rsync_verbose: bool
-  rsync_host: str
-  rsync_rootfolder: str
-  rsync_exclude: str
-  rsync_user: str
-  rsync_password: str
-  rclone_enabled: bool
-  rclone_copy: bool
-  rclone_sync: bool
-  rclone_restore: bool
-  rclone_remote: str
-  rclone_remote_directory: str
+  rsync_enabled: bool?
+  rsync_verbose: bool?
+  rsync_host: str?
+  rsync_rootfolder: str?
+  rsync_exclude: str?
+  rsync_user: str?
+  rsync_password: str?
+  rclone_enabled: bool?
+  rclone_copy: bool?
+  rclone_sync: bool?
+  rclone_restore: bool?
+  rclone_remote: str?
+  rclone_remote_directory: str?

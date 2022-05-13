@@ -1,3 +1,16 @@
+# 2022.5.0
+
+- Updated base image to 11.1.2
+- Updated HA CLI to 4.17.0
+- Added support for `HostKeyAlgorithms` hopefully fixing #37
+- Added support for excluding addons from backup
+- Added support for excluding folders from backup
+- Fixed shellcheck warnings
+- Added minimum Home Assistant version
+- Sign images with Codenotary CAS
+
+**Full Changelog**: https://github.com/ikifar2012/remote-backup-addon/compare/2022.1.1...2022.5.0
+
 # 2022.1.1
 
 - Updated url in `config.yaml`
@@ -37,7 +50,7 @@
 # 2021.10.0
 
 - Upgraded Base to 10.1.1
-- Upgraded Home Assistant CLI to 4.14.0 
+- Upgraded Home Assistant CLI to 4.14.0
 - Changed from `snapshots` to `backups` (See Breaking Change #26)
 
 # 2021.9.0
