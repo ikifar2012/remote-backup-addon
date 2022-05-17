@@ -4,6 +4,7 @@ slug: remote_backup
 description: Automatically create and backup HA backups using SCP
 image: ikifar/remote-backup-{arch}
 url: https://addons.mathesonsteplock.ca/docs/addons/remote-backup/basic-config
+codenotary: "cas@mathesonsteplock.ca"
 startup: once
 boot: manual
 arch:
