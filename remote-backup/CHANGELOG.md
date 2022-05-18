@@ -4,6 +4,7 @@
 - Add ko-fi to `FUNDING.yml`
 
 **Full Changelog**: https://github.com/ikifar2012/remote-backup-addon/compare/2022.5.0...2022.5.1
+
 # 2022.5.0
 
 - Updated base image to 11.1.2
