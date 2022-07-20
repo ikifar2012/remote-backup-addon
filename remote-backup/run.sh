@@ -1,4 +1,5 @@
 #!/command/with-contenv bashio
+# shellcheck shell=bash
 # parse inputs from options
 DEBUG=$(bashio::config 'debug')
 SSH_ENABLED=$(bashio::config "ssh_enabled")
