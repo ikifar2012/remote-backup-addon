@@ -17,7 +17,7 @@ RUN curl https://rclone.org/install.sh | bash
 # Hass.io CLI
 ARG BUILD_ARCH
 ARG CLI_VERSION
-RUN wget -O /usr/bin/ha "https://github.com/home-assistant/cli/releases/download/4.17.0/ha_${BUILD_ARCH}" \
+RUN wget -O /usr/bin/ha "https://github.com/home-assistant/cli/releases/download/4.18.0/ha_${BUILD_ARCH}" \
     && chmod a+x /usr/bin/ha
 
 # Copy data

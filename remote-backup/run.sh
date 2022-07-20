@@ -1,4 +1,5 @@
-#!/usr/bin/env bashio
+#!/command/with-contenv bashio
+# shellcheck shell=bash
 # parse inputs from options
 DEBUG=$(bashio::config 'debug')
 SSH_ENABLED=$(bashio::config "ssh_enabled")
@@ -67,13 +68,13 @@ function create-local-backup {
     FOLDERS=""
     ADDONS=""
     BASE_FOLDERS="addons/local homeassistant media share ssl"
-    INSTALLED_ADDONS=$(bashio::addons.installed)
+    INSTALLED_ADDONS=$(bashio::supervisor.addons)
     name="${CUSTOM_PREFIX} $(date +'%Y-%m-%d %H-%M')"
     warn "Creating local backup: \"${name}\""
     if [ -n "${EXCLUDE_ADDONS}" ] || [ -n "${EXCLUDE_FOLDERS}" ] ; then
         EXCLUDED_FOLDERS=$(echo "${EXCLUDE_FOLDERS}" | tr ',' '\n')
         EXCLUDED_ADDONS=$(echo "${EXCLUDE_ADDONS}" | tr ',' '\n')
-        if [ "$DEBUG" = true ] ; then
+        if [ "${DEBUG}" = true ] ; then
             warn "\n Excluded folders: \n ${EXCLUDED_FOLDERS}\n---------------"
             warn "\n Excluded addons: \n ${EXCLUDED_ADDONS}\n----------------"
         fi
@@ -111,7 +112,7 @@ function create-local-backup {
 
 function copy-backup-to-remote {
 
-    if [ "$SSH_ENABLED" = true ] ; then
+    if [ "${SSH_ENABLED}" = true ] ; then
         cd /backup/ || exit
         if [[ -z "${ZIP_PASSWORD}" ]]; then
             warn "Copying ${slug}.tar to ${REMOTE_DIRECTORY} on ${SSH_HOST} using SCP"
