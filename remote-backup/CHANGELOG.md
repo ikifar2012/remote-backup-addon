@@ -1,3 +1,9 @@
+# 2022.7.0
+
+- Updated HA CLI to version 4.18.0
+- Updated base image to version 12.2.1
+- Workaround issue [#45](https://github.com/ikifar2012/remote-backup-addon/issues/45)
+
 # 2022.5.1
 
 - Fix codenotary signature

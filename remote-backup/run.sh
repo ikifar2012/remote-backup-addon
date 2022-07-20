@@ -1,4 +1,4 @@
-#!/usr/bin/env bashio
+#!/command/with-contenv bashio
 # parse inputs from options
 DEBUG=$(bashio::config 'debug')
 SSH_ENABLED=$(bashio::config "ssh_enabled")
@@ -67,7 +67,7 @@ function create-local-backup {
     FOLDERS=""
     ADDONS=""
     BASE_FOLDERS="addons/local homeassistant media share ssl"
-    INSTALLED_ADDONS=$(bashio::addons.installed)
+    INSTALLED_ADDONS=$(bashio::supervisor.addons)
     name="${CUSTOM_PREFIX} $(date +'%Y-%m-%d %H-%M')"
     warn "Creating local backup: \"${name}\""
     if [ -n "${EXCLUDE_ADDONS}" ] || [ -n "${EXCLUDE_FOLDERS}" ] ; then
