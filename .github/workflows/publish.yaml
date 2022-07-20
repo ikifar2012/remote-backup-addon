@@ -30,7 +30,7 @@ jobs:
             --docker-user ${{ secrets.DOCKERHUB_USERNAME }} \
             --docker-password ${{ secrets.DOCKERHUB_TOKEN }}
       - name: 🚀 Dispatch Repository Updater update signal
-        uses: peter-evans/repository-dispatch@v1
+        uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.DISPATCH_TOKEN }}
           repository: ikifar2012/ha-addons
