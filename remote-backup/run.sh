@@ -30,17 +30,13 @@ RCLONE_RESTORE=$(bashio::config "rclone_restore")
 RCLONE_REMOTE=$(bashio::config "rclone_remote")
 RCLONE_REMOTE_DIRECTORY=$(bashio::config "rclone_remote_directory")
 
-# define info messages
-function info { echo -e "\e[32m[info] $*\e[39m"; }
-function warn  { echo -e "\e[33m[warn] $*\e[39m"; }
-
 # create variables
 SSH_ID="/ssl/${SSH_KEY}"
 SSH_ID=$(echo -n "${SSH_ID}")
 function add-ssh-key {
 
     if [ "${SSH_ENABLED}" = true ] ; then
-        info "Adding SSH key"
+        bashio::log.info "Adding SSH key"
         mkdir -p ~/.ssh
         cp "${SSH_ID}" "${HOME}"/.ssh/id_rsa
         chmod 600 "${HOME}/.ssh/id_rsa"
@@ -59,7 +55,7 @@ function add-ssh-key {
 
         chmod 600 "${HOME}/.ssh/config"
         chmod 644 "${HOME}/.ssh/id_rsa.pub"
-        info "SSH key added"
+        bashio::log.info "SSH key added"
     fi
 }
 
@@ -70,22 +66,20 @@ function create-local-backup {
     BASE_FOLDERS="addons/local homeassistant media share ssl"
     INSTALLED_ADDONS=$(bashio::supervisor.addons)
     name="${CUSTOM_PREFIX} $(date +'%Y-%m-%d %H-%M')"
-    warn "Creating local backup: \"${name}\""
+    bashio::log.info "Creating local backup: \"${name}\""
     if [ -n "${EXCLUDE_ADDONS}" ] || [ -n "${EXCLUDE_FOLDERS}" ] ; then
         EXCLUDED_FOLDERS=$(echo "${EXCLUDE_FOLDERS}" | tr ',' '\n')
         EXCLUDED_ADDONS=$(echo "${EXCLUDE_ADDONS}" | tr ',' '\n')
-        if [ "${DEBUG}" = true ] ; then
-            warn "\n Excluded folders: \n ${EXCLUDED_FOLDERS}\n---------------"
-            warn "\n Excluded addons: \n ${EXCLUDED_ADDONS}\n----------------"
-        fi
         UNFORMATTED_FOLDERS="${BASE_FOLDERS}"
         UNFORMATTED_ADDONS="${INSTALLED_ADDONS}"
     if [ -n "${EXCLUDED_FOLDERS}" ] ; then
+        bashio::log.warning "Excluded folders: \n ${EXCLUDED_FOLDERS}"
         for folder in ${EXCLUDED_FOLDERS} ; do
             UNFORMATTED_FOLDERS=$(echo "${UNFORMATTED_FOLDERS}" | sed -e "s/${folder}//g")
         done
     fi
     if [ -n "${EXCLUDED_ADDONS}" ] ; then
+        bashio::log.warning "Excluded addons: \n ${EXCLUDED_ADDONS}"
         for addon in ${EXCLUDED_ADDONS} ; do
             UNFORMATTED_ADDONS="$(echo "${UNFORMATTED_ADDONS}" | sed -e "s/${addon}//g")"
         done
@@ -98,16 +92,14 @@ function create-local-backup {
             FOLDERS="${FOLDERS}--folders ${folder} "
         done
         fi
-        info "Creating partial backup"
-        if [ "${DEBUG}" = true ] ; then
-            warn "Including ${FOLDERS} and ${ADDONS}"
-        fi
+        bashio::log.info "Creating partial backup"
+        bashio::log.debug "Including ${FOLDERS} and ${ADDONS}"
         slug=$(ha backups new --raw-json --name="${name}" ${ADDONS} ${FOLDERS} | jq --raw-output '.data.slug')
     else
-        info "Creating full backup"
+        bashio::log.info "Creating full backup"
         slug=$(ha backups new --raw-json --name="${name}" | jq --raw-output '.data.slug')
     fi
-    info "Backup created: ${slug}"
+    bashio::log.info "Backup created: ${slug}"
 }
 
 function copy-backup-to-remote {
@@ -115,27 +107,27 @@ function copy-backup-to-remote {
     if [ "${SSH_ENABLED}" = true ] ; then
         cd /backup/ || exit
         if [[ -z "${ZIP_PASSWORD}" ]]; then
-            warn "Copying ${slug}.tar to ${REMOTE_DIRECTORY} on ${SSH_HOST} using SCP"
+            bashio::log.info "Copying ${slug}.tar to ${REMOTE_DIRECTORY} on ${SSH_HOST} using SCP"
             scp -F "${HOME}/.ssh/config" "${slug}.tar" remote:"${REMOTE_DIRECTORY}"
-            info "Backup copied to ${REMOTE_DIRECTORY}/${slug}.tar on ${SSH_HOST}"
+            bashio::log.info "Backup copied to ${REMOTE_DIRECTORY}/${slug}.tar on ${SSH_HOST}"
         else
-            info "Copying password-protected ${slug}.zip to ${REMOTE_DIRECTORY} on ${SSH_HOST} using SCP"
+            bashio::log.info "Copying password-protected ${slug}.zip to ${REMOTE_DIRECTORY} on ${SSH_HOST} using SCP"
             zip -P "$ZIP_PASSWORD" "${slug}.zip" "${slug}".tar
             scp -F "${HOME}/.ssh/config" "${slug}.zip" remote:"${REMOTE_DIRECTORY}" && rm "${slug}.zip"
-            info "Backup copied to ${REMOTE_DIRECTORY}/${slug}.zip on ${SSH_HOST}"
+            bashio::log.info "Backup copied to ${REMOTE_DIRECTORY}/${slug}.zip on ${SSH_HOST}"
         fi
         if [ "${FRIENDLY_NAME}" = true ] ; then
             if [[ -z "${ZIP_PASSWORD}" ]]; then
-                warn "Renaming ${slug}.tar to ${name}.tar"
+                bashio::log.notice "Renaming ${slug}.tar to ${name}.tar"
                 ssh remote "mv \"${REMOTE_DIRECTORY}/${slug}.tar\" \"${REMOTE_DIRECTORY}/${name}.tar\""
-                info "Backup renamed to ${REMOTE_DIRECTORY}/${name}.tar on ${SSH_HOST}"
+                bashio::log.info "Backup renamed to ${REMOTE_DIRECTORY}/${name}.tar on ${SSH_HOST}"
             else
-                info "Renaming ${slug}.zip to ${name}.zip"
+                bashio::log.info "Renaming ${slug}.zip to ${name}.zip"
                 ssh remote "mv \"${REMOTE_DIRECTORY}/${slug}.zip\" \"${REMOTE_DIRECTORY}/${name}.zip\""
-                info "Backup renamed to ${REMOTE_DIRECTORY}/${name}.zip on ${SSH_HOST}"
+                bashio::log.info "Backup renamed to ${REMOTE_DIRECTORY}/${name}.zip on ${SSH_HOST}"
             fi
         fi
-    info "SCP complete"
+    bashio::log.info "SCP complete"
     fi
 }
 
@@ -149,53 +141,51 @@ function rsync_folders {
             FLAGS='-a'
         fi
         if [ -z "${RSYNC_EXCLUDE}" ]; then
-            warn "Syncing /config"
+            bashio::log.debug "Syncing /config"
              sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ "${rsyncurl}/config/" --delete
-            info "/config sync complete"
-            echo ""
-            warn "Syncing /addons"
+            bashio::log.debug "/config sync complete"
+
+            bashio::log.debug "Syncing /addons"
              sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} /addons/ "${rsyncurl}/addons/" --delete
-            info "/addons sync complete"
-            echo ""
-            warn "Syncing /backup"
+            bashio::log.debug "/addons sync complete"
+
+            bashio::log.debug "Syncing /backup"
              sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} /backup/ "${rsyncurl}/backup/" --delete
-            info "/backup sync complete"
-            echo ""
-            warn "Syncing /share"
+            bashio::log.debug "/backup sync complete"
+
+            bashio::log.debug "Syncing /share"
              sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} /share/ "${rsyncurl}/share/" --delete
-            info "/share sync complete"
-            echo ""
-            warn "Syncing /ssl"
+            bashio::log.debug "/share sync complete"
+
+            bashio::log.debug "Syncing /ssl"
              sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} /ssl/ "${rsyncurl}/ssl/" --delete
-            info "/ssl sync complete"
-            echo ""
+            bashio::log.debug "/ssl sync complete"
         else
             echo "${RSYNC_EXCLUDE}" | tr -s ", " "\n" > /tmp/rsync_exclude.txt
-            info "Files you excluded will be displayed below:"
+            bashio::log.warning "Files you excluded will be displayed below:"
             cat /tmp/rsync_exclude.txt
-            info "Starting rsync"
-            warn "Syncing /config"
+            bashio::log.debug "Starting rsync"
+            bashio::log.debug "Syncing /config"
              sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ "${rsyncurl}/config/" --delete
-            info "/config sync complete"
-            echo ""
-            warn "Syncing /addons"
+            bashio::log.debug "/config sync complete"
+
+            bashio::log.debug "Syncing /addons"
              sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' /addons/ "${rsyncurl}/addons/" --delete
-            info "/addons sync complete"
-            echo ""
-            warn "Syncing /backup"
+            bashio::log.debug "/addons sync complete"
+
+            bashio::log.debug "Syncing /backup"
              sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' /backup/ "${rsyncurl}/backup/" --delete
-            info "/backup sync complete"
-            echo ""
-            warn "Syncing /share"
+            bashio::log.debug "/backup sync complete"
+
+            bashio::log.debug "Syncing /share"
              sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' /share/ "${rsyncurl}/share/" --delete
-            info "/share sync complete"
-            echo ""
-            warn "Syncing /ssl"
+            bashio::log.debug "/share sync complete"
+
+            bashio::log.debug "Syncing /ssl"
              sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' /ssl/ "${rsyncurl}/ssl/" --delete
-            info "/ssl sync complete"
-            echo ""
+            bashio::log.debug "/ssl sync complete"
         fi
-        info "Finished rsync"
+        bashio::log.info "Finished rsync"
     fi
 }
 
@@ -204,42 +194,42 @@ function rclone_backups {
         cd /backup/ || exit
         mkdir -p ~/.config/rclone/
         cp -a /ssl/rclone.conf ~/.config/rclone/rclone.conf
-        echo "Starting rclone"
+        bashio::log.info "Starting rclone"
         if [ "$RCLONE_COPY" = true ] ; then
             if [ "$FRIENDLY_NAME" = true ] ; then
                 if [[ -z $ZIP_PASSWORD  ]]; then
-                    warn "Copying ${slug}.tar to ${RCLONE_REMOTE_DIRECTORY}/${name}.tar"
+                    bashio::log.debug "Copying ${slug}.tar to ${RCLONE_REMOTE_DIRECTORY}/${name}.tar"
                     rclone copyto "${slug}.tar" "${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}/${name}".tar
-                    info "Finished rclone copy"
+                    bashio::log.debug "Finished rclone copy"
                 else
-                    warn "Copying ${slug}.zip to ${RCLONE_REMOTE_DIRECTORY}/${name}.zip"
+                    bashio::log.debug "Copying ${slug}.zip to ${RCLONE_REMOTE_DIRECTORY}/${name}.zip"
                     rclone copyto "${slug}.zip" "${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}/${name}".zip
-                    info "Finished rclone copy"
+                    bashio::log.debug "Finished rclone copy"
                 fi
             else
                 if [[ -z "${ZIP_PASSWORD}"  ]]; then
-                    warn "Copying ${slug}.tar to ${RCLONE_REMOTE_DIRECTORY}/${slug}.tar"
+                    bashio::log.debug "Copying ${slug}.tar to ${RCLONE_REMOTE_DIRECTORY}/${slug}.tar"
                     rclone copy "${slug}.tar" "${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}"
-                    info "Finished rclone copy"
+                    bashio::log.debug "Finished rclone copy"
                 else
-                    warn "Copying ${slug}.zip to ${RCLONE_REMOTE_DIRECTORY}/${slug}.zip"
+                    bashio::log.debug "Copying ${slug}.zip to ${RCLONE_REMOTE_DIRECTORY}/${slug}.zip"
                     rclone copy "${slug}.zip" "${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}"
-                    info "Finished rclone copy"
+                    bashio::log.debug "Finished rclone copy"
                 fi
             fi
         fi
         if [ "${RCLONE_SYNC}" = true ] ; then
-            warn "Syncing Backups"
+            bashio::log.info "Syncing Backups"
             rclone sync . "${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}"
-            info "Finished rclone sync"
+            bashio::log.info "Finished rclone sync"
         fi
         if [ "${RCLONE_RESTORE}" = true ] ; then
             DATEFORMAT=$(date +%F)
             RESTORENAME="restore-${DATEFORMAT}"
             mkdir -p "${RESTORENAME}"
-            warn "Restoring Backups to ${RESTORENAME}"
+            bashio::log.info "Restoring Backups to ${RESTORENAME}"
             rclone copyto "${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY} ${RESTORENAME}/"
-            info "Finished rclone restore"
+            bashio::log.info "Finished rclone restore"
         fi
     fi
 }
@@ -252,7 +242,7 @@ function delete-local-backup {
     if [[ "${KEEP_LOCAL_BACKUP}" == "all" ]]; then
         :
     elif [[ -z "${KEEP_LOCAL_BACKUP}" ]]; then
-        warn "Deleting local backup: ${slug}"
+        bashio::log.warning "Deleting local backup: ${slug}"
         ha backups remove "${slug}"
     else
 
@@ -261,9 +251,9 @@ function delete-local-backup {
 
         ha backups list --raw-json | jq -c .data.backups[] | while read -r backup; do
             if [[ $(echo "${backup}" | jq .date | xargs date -D "%Y-%m-%dT%T" +%s --date ) -lt ${last_date_to_keep} ]]; then
-                warn "Deleting local backup: $(echo "${backup}" | jq -r .slug)"
+                bashio::log.warning "Deleting local backup: $(echo "${backup}" | jq -r .slug)"
                 ha backups remove "$(echo "${backup}" | jq -r .slug)"
-                info "Finished deleting local backup: $(echo "${backup}" | jq -r .slug)"
+                bashio::log.info "Finished deleting local backup: $(echo "${backup}" | jq -r .slug)"
             fi
         done
 
@@ -277,5 +267,5 @@ rsync_folders
 rclone_backups
 delete-local-backup
 
-info "Backup process done!"
+bashio::log.info "Backup process done!"
 exit 0
