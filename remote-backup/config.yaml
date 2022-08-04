@@ -33,8 +33,8 @@ options:
   ssh_user: ""
   ssh_key: ""
   ssh_host_key_algorithms: ""
-  exclude_folders: ""
-  exclude_addons: ""
+  exclude_folders: []
+  exclude_addons: []
   remote_directory: ""
   zip_password: ""
   keep_local_backup: "all"
@@ -42,7 +42,10 @@ options:
   rsync_verbose: false
   rsync_host: ""
   rsync_rootfolder: hassio-sync
-  rsync_exclude: ""
+  rsync_exclude:
+    - "/config/*.db-shm"
+    - "/config/*.db-wal"
+    - "/config/*.db"
   rsync_user: ""
   rsync_password: ""
   rclone_enabled: false
@@ -57,12 +60,14 @@ schema:
   friendly_name: bool?
   custom_prefix: str?
   ssh_host: str?
-  ssh_port: int?
+  ssh_port: port?
   ssh_user: str?
   ssh_key: str?
   ssh_host_key_algorithms: str?
-  exclude_folders: str?
-  exclude_addons: str?
+  exclude_folders:
+    - match(^[A-Za-z0-9_\-\.\*\/\?\+\\]*$)?
+  exclude_addons:
+    - str?
   remote_directory: str?
   zip_password: str?
   keep_local_backup: match(^(all|[+]?\d*)$)
@@ -70,7 +75,8 @@ schema:
   rsync_verbose: bool?
   rsync_host: str?
   rsync_rootfolder: str?
-  rsync_exclude: str?
+  rsync_exclude:
+    - match(^[A-Za-z0-9_\-\.\*\/\?\+\\]+$)
   rsync_user: str?
   rsync_password: str?
   rclone_enabled: bool?

@@ -68,8 +68,8 @@ function create-local-backup {
     name="${CUSTOM_PREFIX} $(date +'%Y-%m-%d %H-%M')"
     bashio::log.info "Creating local backup: \"${name}\""
     if [ -n "${EXCLUDE_ADDONS}" ] || [ -n "${EXCLUDE_FOLDERS}" ] ; then
-        EXCLUDED_FOLDERS=$(echo "${EXCLUDE_FOLDERS}" | tr ',' '\n')
-        EXCLUDED_ADDONS=$(echo "${EXCLUDE_ADDONS}" | tr ',' '\n')
+        EXCLUDED_FOLDERS=$(echo "${EXCLUDE_FOLDERS}")
+        EXCLUDED_ADDONS=$(echo "${EXCLUDE_ADDONS}")
         UNFORMATTED_FOLDERS="${BASE_FOLDERS}"
         UNFORMATTED_ADDONS="${INSTALLED_ADDONS}"
     if [ -n "${EXCLUDED_FOLDERS}" ] ; then
@@ -132,59 +132,29 @@ function copy-backup-to-remote {
 }
 
 function rsync_folders {
+    FOLDERS="/config /addons /backup /share /ssl"
 
     if [ "${RSYNC_ENABLED}" = true ] ; then
+        bashio::log.info "Starting rsync"
         rsyncurl="${RSYNC_USER}@${RSYNC_HOST}:${RSYNC_ROOTFOLDER}"
         if [ "${RSYNC_VERBOSE}" = true ] ; then
             FLAGS='-av'
         else
             FLAGS='-a'
         fi
-        if [ -z "${RSYNC_EXCLUDE}" ]; then
-            bashio::log.debug "Syncing /config"
-             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ "${rsyncurl}/config/" --delete
-            bashio::log.debug "/config sync complete"
-
-            bashio::log.debug "Syncing /addons"
-             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} /addons/ "${rsyncurl}/addons/" --delete
-            bashio::log.debug "/addons sync complete"
-
-            bashio::log.debug "Syncing /backup"
-             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} /backup/ "${rsyncurl}/backup/" --delete
-            bashio::log.debug "/backup sync complete"
-
-            bashio::log.debug "Syncing /share"
-             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} /share/ "${rsyncurl}/share/" --delete
-            bashio::log.debug "/share sync complete"
-
-            bashio::log.debug "Syncing /ssl"
-             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} /ssl/ "${rsyncurl}/ssl/" --delete
-            bashio::log.debug "/ssl sync complete"
-        else
-            echo "${RSYNC_EXCLUDE}" | tr -s ", " "\n" > /tmp/rsync_exclude.txt
-            bashio::log.warning "Files you excluded will be displayed below:"
-            cat /tmp/rsync_exclude.txt
-            bashio::log.debug "Starting rsync"
-            bashio::log.debug "Syncing /config"
-             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ "${rsyncurl}/config/" --delete
-            bashio::log.debug "/config sync complete"
-
-            bashio::log.debug "Syncing /addons"
-             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' /addons/ "${rsyncurl}/addons/" --delete
-            bashio::log.debug "/addons sync complete"
-
-            bashio::log.debug "Syncing /backup"
-             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' /backup/ "${rsyncurl}/backup/" --delete
-            bashio::log.debug "/backup sync complete"
-
-            bashio::log.debug "Syncing /share"
-             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' /share/ "${rsyncurl}/share/" --delete
-            bashio::log.debug "/share sync complete"
-
-            bashio::log.debug "Syncing /ssl"
-             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' /ssl/ "${rsyncurl}/ssl/" --delete
-            bashio::log.debug "/ssl sync complete"
+        bashio::log.debug "Adding key of remote host ${RSYNC_HOST} to known hosts."
+        ssh-keyscan -t rsa ${RSYNC_HOST} >> ~/.ssh/known_hosts
+        if [ -n "${RSYNC_EXCLUDE}" ]; then
+            echo "${RSYNC_EXCLUDE}" > /tmp/rsync_exclude.txt
+            bashio::log.warning "File patterns that have been excluded:\n${RSYNC_EXCLUDE}"
         fi
+
+        for folder in ${FOLDERS} ; do
+          bashio::log.debug "Syncing ${folder}"
+           sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' ${folder}/ "${rsyncurl}${folder}/" --delete
+          bashio::log.debug "${folder} sync complete"
+        done
+
         bashio::log.info "Finished rsync"
     fi
 }
