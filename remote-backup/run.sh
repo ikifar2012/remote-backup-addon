@@ -35,7 +35,7 @@ SSH_ID="/ssl/${SSH_KEY}"
 SSH_ID=$(echo -n "${SSH_ID}")
 function add-ssh-key {
 
-    if [ "${SSH_ENABLED}" = true ] ; then
+    if [ "${SSH_ENABLED}" = true ] || [ "${RSYNC_ENABLED}" = true ] ; then
         bashio::log.info "Adding SSH key"
         mkdir -p ~/.ssh
         cp "${SSH_ID}" "${HOME}"/.ssh/id_rsa
