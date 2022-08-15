@@ -1,0 +1,14 @@
+configuration:
+  debug:
+    name: Enable debugging
+  custom_prefix:
+    name: Custom backup name prefix
+  friendly_name:
+    name: Friendly name
+    description: Rename the snapshot on the destination server to match the name in the Home Assistant UI
+  ssh_enabled:
+    name: Enable SSH
+    description: Copies the snapshots to the remote server
+  rsync_enabled:
+    name: Enable rsync
+    description: Clones local folders to remote server (including backups)
