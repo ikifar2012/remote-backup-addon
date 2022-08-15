@@ -42,7 +42,7 @@ function set-debug-level {
 }
 
 function add-ssh-key {
-    if [ "${SSH_ENABLED}" = true ] ; then
+    if [ "${SSH_ENABLED}" = true ] || [ "${RSYNC_ENABLED}" = true ] ; then
         bashio::log.info "Adding SSH key"
         mkdir -p ~/.ssh
         cp "${SSH_ID}" "${HOME}"/.ssh/id_rsa
@@ -147,6 +147,8 @@ function rsync_folders {
         else
             FLAGS='-a'
         fi
+        info "Adding key of remote host ${RSYNC_HOST} to known hosts."
+        ssh-keyscan -t rsa ${RSYNC_HOST} >> ~/.ssh/known_hosts
         if [ -z "${RSYNC_EXCLUDE}" ]; then
             bashio::log.debug "Syncing /config"
              sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ "${rsyncurl}/config/" --delete
