@@ -33,8 +33,15 @@ RCLONE_REMOTE_DIRECTORY=$(bashio::config "rclone_remote_directory")
 # create variables
 SSH_ID="/ssl/${SSH_KEY}"
 SSH_ID=$(echo -n "${SSH_ID}")
-function add-ssh-key {
 
+function set-debug-level {
+  # default log level according to bashio const.sh is INFO
+  if [ "${DEBUG}" = true ] ; then
+    bashio::log.level "debug"
+  fi
+}
+
+function add-ssh-key {
     if [ "${SSH_ENABLED}" = true ] ; then
         bashio::log.info "Adding SSH key"
         mkdir -p ~/.ssh
@@ -260,6 +267,7 @@ function delete-local-backup {
     fi
 }
 
+set-debug-level
 add-ssh-key
 create-local-backup
 copy-backup-to-remote
