@@ -160,12 +160,10 @@ function rsync_folders {
         bashio::log.warning "File patterns that have been excluded:\n${RSYNC_EXCLUDE}"
     fi
 
-    for folder in ${FOLDERS} ; do
-      bashio::log.debug "Syncing ${folder}"
-      sshpass -p "${RSYNC_PASSWORD}" \
-        rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' ${folder}/ "${RSYNC_URL}${folder}/" --delete \
-        || bashio::log.fatal "Error syncing folder ${folder}"
-    done
+    bashio::log.debug "Syncing ${FOLDERS}"
+    sshpass -p "${RSYNC_PASSWORD}" \
+      rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' ${FOLDERS} "${RSYNC_URL}/" --delete \
+      || bashio::log.fatal "Error syncing folder(s) ${FOLDERS}"
 
     bashio::log.info "Finished rsync"
 }
