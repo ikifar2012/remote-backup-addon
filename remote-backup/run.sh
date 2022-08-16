@@ -33,8 +33,15 @@ RCLONE_REMOTE_DIRECTORY=$(bashio::config "rclone_remote_directory")
 # create variables
 SSH_ID="/ssl/${SSH_KEY}"
 SSH_ID=$(echo -n "${SSH_ID}")
-function add-ssh-key {
 
+function set-debug-level {
+  # default log level according to bashio const.sh is INFO
+  if [ "${DEBUG}" = true ] ; then
+    bashio::log.level "debug"
+  fi
+}
+
+function add-ssh-key {
     if [ "${SSH_ENABLED}" = true ] || [ "${RSYNC_ENABLED}" = true ] ; then
         bashio::log.info "Adding SSH key"
         mkdir -p ~/.ssh
@@ -73,13 +80,13 @@ function create-local-backup {
         UNFORMATTED_FOLDERS="${BASE_FOLDERS}"
         UNFORMATTED_ADDONS="${INSTALLED_ADDONS}"
     if [ -n "${EXCLUDED_FOLDERS}" ] ; then
-        bashio::log.warning "Excluded folders: \n ${EXCLUDED_FOLDERS}"
+        bashio::log.warning "Excluded folders:\n${EXCLUDED_FOLDERS}"
         for folder in ${EXCLUDED_FOLDERS} ; do
             UNFORMATTED_FOLDERS=$(echo "${UNFORMATTED_FOLDERS}" | sed -e "s/${folder}//g")
         done
     fi
     if [ -n "${EXCLUDED_ADDONS}" ] ; then
-        bashio::log.warning "Excluded addons: \n ${EXCLUDED_ADDONS}"
+        bashio::log.warning "Excluded addons:\n${EXCLUDED_ADDONS}"
         for addon in ${EXCLUDED_ADDONS} ; do
             UNFORMATTED_ADDONS="$(echo "${UNFORMATTED_ADDONS}" | sed -e "s/${addon}//g")"
         done
@@ -93,7 +100,7 @@ function create-local-backup {
         done
         fi
         bashio::log.info "Creating partial backup"
-        bashio::log.debug "Including ${FOLDERS} and ${ADDONS}"
+        bashio::log.debug "Including ${FOLDERS}and ${ADDONS}"
         slug=$(ha backups new --raw-json --name="${name}" ${ADDONS} ${FOLDERS} | jq --raw-output '.data.slug')
     else
         bashio::log.info "Creating full backup"
@@ -144,8 +151,8 @@ function rsync_folders {
         fi
         bashio::log.debug "Adding key of remote host ${RSYNC_HOST} to known hosts."
         ssh-keyscan -t rsa ${RSYNC_HOST} >> ~/.ssh/known_hosts
-        if [ -n "${RSYNC_EXCLUDE}" ]; then
-            echo "${RSYNC_EXCLUDE}" > /tmp/rsync_exclude.txt
+        echo "${RSYNC_EXCLUDE}" > /tmp/rsync_exclude.txt
+        if [ -n "${RSYNC_EXCLUDE}" ]; then            
             bashio::log.warning "File patterns that have been excluded:\n${RSYNC_EXCLUDE}"
         fi
 
@@ -230,6 +237,7 @@ function delete-local-backup {
     fi
 }
 
+set-debug-level
 add-ssh-key
 create-local-backup
 copy-backup-to-remote
