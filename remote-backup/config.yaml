@@ -39,7 +39,6 @@ options:
   zip_password: ""
   keep_local_backup: "all"
   rsync_enabled: false
-  rsync_verbose: false
   rsync_host: ""
   rsync_rootfolder: hassio-sync
   rsync_exclude:
@@ -72,7 +71,6 @@ schema:
   zip_password: str?
   keep_local_backup: match(^(all|[+]?\d*)$)
   rsync_enabled: bool?
-  rsync_verbose: bool?
   rsync_host: str?
   rsync_rootfolder: str?
   rsync_exclude:

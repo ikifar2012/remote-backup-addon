@@ -17,7 +17,6 @@ ZIP_PASSWORD=$(bashio::config 'zip_password')
 KEEP_LOCAL_BACKUP=$(bashio::config 'keep_local_backup')
 
 RSYNC_ENABLED=$(bashio::config "rsync_enabled")
-RSYNC_VERBOSE=$(bashio::config "rsync_verbose")
 RSYNC_HOST=$(bashio::config "rsync_host")
 RSYNC_ROOTFOLDER=$(bashio::config "rsync_rootfolder")
 RSYNC_USER=$(bashio::config "rsync_user")
@@ -80,7 +79,7 @@ function create-local-backup {
         UNFORMATTED_FOLDERS="${BASE_FOLDERS}"
         UNFORMATTED_ADDONS="${INSTALLED_ADDONS}"
     if [ -n "${EXCLUDED_FOLDERS}" ] ; then
-        bashio::log.warning "Excluded folders:\n${EXCLUDED_FOLDERS}"
+        bashio::log.warning "Excluded folders:\n ${EXCLUDED_FOLDERS}"
         for folder in ${EXCLUDED_FOLDERS} ; do
             UNFORMATTED_FOLDERS=$(echo "${UNFORMATTED_FOLDERS}" | sed -e "s/${folder}//g")
         done
@@ -139,31 +138,36 @@ function copy-backup-to-remote {
 }
 
 function rsync_folders {
-    FOLDERS="/config /addons /backup /share /ssl"
-
-    if [ "${RSYNC_ENABLED}" = true ] ; then
-        bashio::log.info "Starting rsync"
-        rsyncurl="${RSYNC_USER}@${RSYNC_HOST}:${RSYNC_ROOTFOLDER}"
-        if [ "${RSYNC_VERBOSE}" = true ] ; then
-            FLAGS='-av'
-        else
-            FLAGS='-a'
-        fi
-        bashio::log.debug "Adding key of remote host ${RSYNC_HOST} to known hosts."
-        ssh-keyscan -t rsa ${RSYNC_HOST} >> ~/.ssh/known_hosts
-        echo "${RSYNC_EXCLUDE}" > /tmp/rsync_exclude.txt
-        if [ -n "${RSYNC_EXCLUDE}" ]; then            
-            bashio::log.warning "File patterns that have been excluded:\n${RSYNC_EXCLUDE}"
-        fi
-
-        for folder in ${FOLDERS} ; do
-          bashio::log.debug "Syncing ${folder}"
-           sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' ${folder}/ "${rsyncurl}${folder}/" --delete
-          bashio::log.debug "${folder} sync complete"
-        done
-
-        bashio::log.info "Finished rsync"
+    if bashio::var.false "${RSYNC_ENABLED}"; then
+        bashio::log.debug "rsync disabled."
+        return
     fi
+
+    local FOLDERS="/config /addons /backup /share /ssl"
+    local RSYNC_URL="${RSYNC_USER}@${RSYNC_HOST}:${RSYNC_ROOTFOLDER}"
+
+    bashio::log.info "Starting rsync"
+    if bashio::var.true "${DEBUG}"; then    
+        local FLAGS='-av'
+    else
+        local FLAGS='-a'
+    fi
+    bashio::log.debug "Adding key of remote host ${RSYNC_HOST} to known hosts."
+    ssh-keyscan -t rsa ${RSYNC_HOST} >> ~/.ssh/known_hosts \
+      || bashio::log.error "Failed to add ${RSYNC_HOST} host key"
+    echo "${RSYNC_EXCLUDE}" > /tmp/rsync_exclude.txt
+    if bashio::var.has_value "${RSYNC_EXCLUDE}"; then   
+        bashio::log.warning "File patterns that have been excluded:\n${RSYNC_EXCLUDE}"
+    fi
+
+    for folder in ${FOLDERS} ; do
+      bashio::log.debug "Syncing ${folder}"
+      sshpass -p "${RSYNC_PASSWORD}" \
+        rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' ${folder}/ "${RSYNC_URL}${folder}/" --delete \
+        || bashio::log.fatal "Error syncing folder ${folder}"
+    done
+
+    bashio::log.info "Finished rsync"
 }
 
 function rclone_backups {
