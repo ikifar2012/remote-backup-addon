@@ -13,7 +13,7 @@ SSH_HOST_KEY_ALGORITHMS=$(bashio::config "ssh_host_key_algorithms")
 EXCLUDE_FOLDERS=$(bashio::config "exclude_folders")
 EXCLUDE_ADDONS=$(bashio::config "exclude_addons")
 REMOTE_DIRECTORY=$(bashio::config "remote_directory")
-PASSWORD=$(bashio::config 'password')
+BACKUP_PASSWORD=$(bashio::config 'backup_password')
 KEEP_LOCAL_BACKUP=$(bashio::config 'keep_local_backup')
 
 RSYNC_ENABLED=$(bashio::config "rsync_enabled")
@@ -101,10 +101,10 @@ function create-local-backup {
         fi
         bashio::log.info "Creating partial backup"
         bashio::log.debug "Including ${FOLDERS} and ${ADDONS}"
-        slug=$(ha backups new --raw-json --name="${name}" ${ADDONS} ${FOLDERS} --password="${PASSWORD}" | jq --raw-output '.data.slug')
+        slug=$(ha backups new --raw-json --name="${name}" ${ADDONS} ${FOLDERS} --password="${BACKUP_PASSWORD}" | jq --raw-output '.data.slug')
     else
         bashio::log.info "Creating full backup"
-        slug=$(ha backups new --raw-json --name="${name}" --password="${PASSWORD}" | jq --raw-output '.data.slug')
+        slug=$(ha backups new --raw-json --name="${name}" --password="${BACKUP_PASSWORD}" | jq --raw-output '.data.slug')
     fi
     bashio::log.info "Backup created: ${slug}"
 }
