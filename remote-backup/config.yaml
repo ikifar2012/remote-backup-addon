@@ -36,7 +36,7 @@ options:
   exclude_folders: ""
   exclude_addons: ""
   remote_directory: ""
-  zip_password: ""
+  password: ""
   keep_local_backup: "all"
   rsync_enabled: false
   rsync_verbose: false
