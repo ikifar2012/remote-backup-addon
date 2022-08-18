@@ -113,7 +113,7 @@ function copy-backup-to-remote {
     if [ "${SSH_ENABLED}" = true ] ; then
         cd /backup/ || exit
             bashio::log.info "Copying ${slug}.tar to ${SSH_REMOTE_DIRECTORY} on ${REMOTE_HOST} using SCP"
-            scp -F "${HOME}/.ssh/config" "${slug}.tar" remote:"${SSH_REMOTE_DIRECTORY}"
+            scp -F "${HOME}/.ssh/config" "${slug}.tar" remote:"${SSH_REMOTE_DIRECTORY}/"
             bashio::log.info "Backup copied to ${SSH_REMOTE_DIRECTORY}/${slug}.tar on ${REMOTE_HOST}"
 
         if [ "${BACKUP_FRIENDLY_NAME}" = true ] ; then
