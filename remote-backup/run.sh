@@ -13,11 +13,10 @@ SSH_HOST_KEY_ALGORITHMS=$(bashio::config "ssh_host_key_algorithms")
 EXCLUDE_FOLDERS=$(bashio::config "exclude_folders")
 EXCLUDE_ADDONS=$(bashio::config "exclude_addons")
 REMOTE_DIRECTORY=$(bashio::config "remote_directory")
-ZIP_PASSWORD=$(bashio::config 'zip_password')
+BACKUP_PASSWORD=$(bashio::config 'backup_password')
 KEEP_LOCAL_BACKUP=$(bashio::config 'keep_local_backup')
 
 RSYNC_ENABLED=$(bashio::config "rsync_enabled")
-RSYNC_VERBOSE=$(bashio::config "rsync_verbose")
 RSYNC_HOST=$(bashio::config "rsync_host")
 RSYNC_ROOTFOLDER=$(bashio::config "rsync_rootfolder")
 RSYNC_USER=$(bashio::config "rsync_user")
@@ -75,18 +74,18 @@ function create-local-backup {
     name="${CUSTOM_PREFIX} $(date +'%Y-%m-%d %H-%M')"
     bashio::log.info "Creating local backup: \"${name}\""
     if [ -n "${EXCLUDE_ADDONS}" ] || [ -n "${EXCLUDE_FOLDERS}" ] ; then
-        EXCLUDED_FOLDERS=$(echo "${EXCLUDE_FOLDERS}" | tr ',' '\n')
-        EXCLUDED_ADDONS=$(echo "${EXCLUDE_ADDONS}" | tr ',' '\n')
+        EXCLUDED_FOLDERS=$(echo "${EXCLUDE_FOLDERS}")
+        EXCLUDED_ADDONS=$(echo "${EXCLUDE_ADDONS}")
         UNFORMATTED_FOLDERS="${BASE_FOLDERS}"
         UNFORMATTED_ADDONS="${INSTALLED_ADDONS}"
     if [ -n "${EXCLUDED_FOLDERS}" ] ; then
-        bashio::log.warning "Excluded folders: \n ${EXCLUDED_FOLDERS}"
+        bashio::log.warning "Excluded folders:\n ${EXCLUDED_FOLDERS}"
         for folder in ${EXCLUDED_FOLDERS} ; do
             UNFORMATTED_FOLDERS=$(echo "${UNFORMATTED_FOLDERS}" | sed -e "s/${folder}//g")
         done
     fi
     if [ -n "${EXCLUDED_ADDONS}" ] ; then
-        bashio::log.warning "Excluded addons: \n ${EXCLUDED_ADDONS}"
+        bashio::log.warning "Excluded addons:\n${EXCLUDED_ADDONS}"
         for addon in ${EXCLUDED_ADDONS} ; do
             UNFORMATTED_ADDONS="$(echo "${UNFORMATTED_ADDONS}" | sed -e "s/${addon}//g")"
         done
@@ -101,10 +100,10 @@ function create-local-backup {
         fi
         bashio::log.info "Creating partial backup"
         bashio::log.debug "Including ${FOLDERS} and ${ADDONS}"
-        slug=$(ha backups new --raw-json --name="${name}" ${ADDONS} ${FOLDERS} | jq --raw-output '.data.slug')
+        slug=$(ha backups new --raw-json --name="${name}" ${ADDONS} ${FOLDERS} --password="${BACKUP_PASSWORD}" | jq --raw-output '.data.slug')
     else
         bashio::log.info "Creating full backup"
-        slug=$(ha backups new --raw-json --name="${name}" | jq --raw-output '.data.slug')
+        slug=$(ha backups new --raw-json --name="${name}" --password="${BACKUP_PASSWORD}" | jq --raw-output '.data.slug')
     fi
     bashio::log.info "Backup created: ${slug}"
 }
@@ -113,89 +112,48 @@ function copy-backup-to-remote {
 
     if [ "${SSH_ENABLED}" = true ] ; then
         cd /backup/ || exit
-        if [[ -z "${ZIP_PASSWORD}" ]]; then
             bashio::log.info "Copying ${slug}.tar to ${REMOTE_DIRECTORY} on ${SSH_HOST} using SCP"
             scp -F "${HOME}/.ssh/config" "${slug}.tar" remote:"${REMOTE_DIRECTORY}"
             bashio::log.info "Backup copied to ${REMOTE_DIRECTORY}/${slug}.tar on ${SSH_HOST}"
-        else
-            bashio::log.info "Copying password-protected ${slug}.zip to ${REMOTE_DIRECTORY} on ${SSH_HOST} using SCP"
-            zip -P "$ZIP_PASSWORD" "${slug}.zip" "${slug}".tar
-            scp -F "${HOME}/.ssh/config" "${slug}.zip" remote:"${REMOTE_DIRECTORY}" && rm "${slug}.zip"
-            bashio::log.info "Backup copied to ${REMOTE_DIRECTORY}/${slug}.zip on ${SSH_HOST}"
-        fi
+
         if [ "${FRIENDLY_NAME}" = true ] ; then
-            if [[ -z "${ZIP_PASSWORD}" ]]; then
                 bashio::log.notice "Renaming ${slug}.tar to ${name}.tar"
                 ssh remote "mv \"${REMOTE_DIRECTORY}/${slug}.tar\" \"${REMOTE_DIRECTORY}/${name}.tar\""
                 bashio::log.info "Backup renamed to ${REMOTE_DIRECTORY}/${name}.tar on ${SSH_HOST}"
-            else
-                bashio::log.info "Renaming ${slug}.zip to ${name}.zip"
-                ssh remote "mv \"${REMOTE_DIRECTORY}/${slug}.zip\" \"${REMOTE_DIRECTORY}/${name}.zip\""
-                bashio::log.info "Backup renamed to ${REMOTE_DIRECTORY}/${name}.zip on ${SSH_HOST}"
-            fi
         fi
     bashio::log.info "SCP complete"
     fi
 }
 
 function rsync_folders {
-
-    if [ "${RSYNC_ENABLED}" = true ] ; then
-        rsyncurl="${RSYNC_USER}@${RSYNC_HOST}:${RSYNC_ROOTFOLDER}"
-        if [ "${RSYNC_VERBOSE}" = true ] ; then
-            FLAGS='-av'
-        else
-            FLAGS='-a'
-        fi
-        info "Adding key of remote host ${RSYNC_HOST} to known hosts."
-        ssh-keyscan -t rsa ${RSYNC_HOST} >> ~/.ssh/known_hosts
-        if [ -z "${RSYNC_EXCLUDE}" ]; then
-            bashio::log.debug "Syncing /config"
-             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ "${rsyncurl}/config/" --delete
-            bashio::log.debug "/config sync complete"
-
-            bashio::log.debug "Syncing /addons"
-             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} /addons/ "${rsyncurl}/addons/" --delete
-            bashio::log.debug "/addons sync complete"
-
-            bashio::log.debug "Syncing /backup"
-             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} /backup/ "${rsyncurl}/backup/" --delete
-            bashio::log.debug "/backup sync complete"
-
-            bashio::log.debug "Syncing /share"
-             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} /share/ "${rsyncurl}/share/" --delete
-            bashio::log.debug "/share sync complete"
-
-            bashio::log.debug "Syncing /ssl"
-             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} /ssl/ "${rsyncurl}/ssl/" --delete
-            bashio::log.debug "/ssl sync complete"
-        else
-            echo "${RSYNC_EXCLUDE}" | tr -s ", " "\n" > /tmp/rsync_exclude.txt
-            bashio::log.warning "Files you excluded will be displayed below:"
-            cat /tmp/rsync_exclude.txt
-            bashio::log.debug "Starting rsync"
-            bashio::log.debug "Syncing /config"
-             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' --exclude '*.db-shm' --exclude '*.db-wal' --exclude '*.db' /config/ "${rsyncurl}/config/" --delete
-            bashio::log.debug "/config sync complete"
-
-            bashio::log.debug "Syncing /addons"
-             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' /addons/ "${rsyncurl}/addons/" --delete
-            bashio::log.debug "/addons sync complete"
-
-            bashio::log.debug "Syncing /backup"
-             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' /backup/ "${rsyncurl}/backup/" --delete
-            bashio::log.debug "/backup sync complete"
-
-            bashio::log.debug "Syncing /share"
-             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' /share/ "${rsyncurl}/share/" --delete
-            bashio::log.debug "/share sync complete"
-
-            bashio::log.debug "Syncing /ssl"
-             sshpass -p "${RSYNC_PASSWORD}" rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' /ssl/ "${rsyncurl}/ssl/" --delete
-            bashio::log.debug "/ssl sync complete"
-        fi
-        bashio::log.info "Finished rsync"
+    if bashio::var.false "${RSYNC_ENABLED}"; then
+        bashio::log.debug "rsync disabled."
+        return
     fi
+
+    local FOLDERS="/config /addons /backup /share /ssl"
+    local RSYNC_URL="${RSYNC_USER}@${RSYNC_HOST}:${RSYNC_ROOTFOLDER}"
+
+    bashio::log.info "Starting rsync"
+    if bashio::var.true "${DEBUG}"; then    
+        local FLAGS='-av'
+    else
+        local FLAGS='-a'
+    fi
+    bashio::log.debug "Adding key of remote host ${RSYNC_HOST} to known hosts."
+    ssh-keyscan -t rsa ${RSYNC_HOST} >> ~/.ssh/known_hosts \
+      || bashio::log.error "Failed to add ${RSYNC_HOST} host key"
+    echo "${RSYNC_EXCLUDE}" > /tmp/rsync_exclude.txt
+    if bashio::var.has_value "${RSYNC_EXCLUDE}"; then   
+        bashio::log.warning "File patterns that have been excluded:\n${RSYNC_EXCLUDE}"
+    fi
+
+    bashio::log.debug "Syncing ${FOLDERS}"
+    sshpass -p "${RSYNC_PASSWORD}" \
+      rsync ${FLAGS} --exclude-from='/tmp/rsync_exclude.txt' ${FOLDERS} "${RSYNC_URL}/" --delete \
+      || bashio::log.fatal "Error syncing folder(s) ${FOLDERS}"
+
+    bashio::log.info "Finished rsync"
 }
 
 function rclone_backups {
@@ -206,25 +164,13 @@ function rclone_backups {
         bashio::log.info "Starting rclone"
         if [ "$RCLONE_COPY" = true ] ; then
             if [ "$FRIENDLY_NAME" = true ] ; then
-                if [[ -z $ZIP_PASSWORD  ]]; then
                     bashio::log.debug "Copying ${slug}.tar to ${RCLONE_REMOTE_DIRECTORY}/${name}.tar"
                     rclone copyto "${slug}.tar" "${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}/${name}".tar
                     bashio::log.debug "Finished rclone copy"
-                else
-                    bashio::log.debug "Copying ${slug}.zip to ${RCLONE_REMOTE_DIRECTORY}/${name}.zip"
-                    rclone copyto "${slug}.zip" "${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}/${name}".zip
-                    bashio::log.debug "Finished rclone copy"
-                fi
             else
-                if [[ -z "${ZIP_PASSWORD}"  ]]; then
                     bashio::log.debug "Copying ${slug}.tar to ${RCLONE_REMOTE_DIRECTORY}/${slug}.tar"
                     rclone copy "${slug}.tar" "${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}"
                     bashio::log.debug "Finished rclone copy"
-                else
-                    bashio::log.debug "Copying ${slug}.zip to ${RCLONE_REMOTE_DIRECTORY}/${slug}.zip"
-                    rclone copy "${slug}.zip" "${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}"
-                    bashio::log.debug "Finished rclone copy"
-                fi
             fi
         fi
         if [ "${RCLONE_SYNC}" = true ] ; then
