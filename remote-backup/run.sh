@@ -29,7 +29,6 @@ RCLONE_COPY=$(bashio::config "rclone_copy")
 RCLONE_SYNC=$(bashio::config "rclone_sync")
 RCLONE_RESTORE=$(bashio::config "rclone_restore")
 
-
 function set-debug-level {
   # default log level according to bashio const.sh is INFO
   if bashio::var.true "${DEBUG}"; then    
@@ -67,58 +66,65 @@ function add-ssh-key {
 
 function create-local-backup {
     # Bind variables
-    FOLDERS=""
-    ADDONS=""
-    BASE_FOLDERS="addons/local homeassistant media share ssl"
-    INSTALLED_ADDONS=$(bashio::supervisor.addons)
-    name="${BACKUP_CUSTOM_PREFIX} $(date +'%Y-%m-%d %H-%M')"
-    bashio::log.info "Creating local backup: \"${name}\""
-    if [ -n "${BACKUP_EXCLUDE_ADDONS}" ] || [ -n "${BACKUP_EXCLUDE_FOLDERS}" ] ; then
-        EXCLUDED_FOLDERS=$(echo "${BACKUP_EXCLUDE_FOLDERS}")
-        EXCLUDED_ADDONS=$(echo "${BACKUP_EXCLUDE_ADDONS}")
-        UNFORMATTED_FOLDERS="${BASE_FOLDERS}"
-        UNFORMATTED_ADDONS="${INSTALLED_ADDONS}"
-    if [ -n "${EXCLUDED_FOLDERS}" ] ; then
-        bashio::log.warning "Excluded folders:\n ${EXCLUDED_FOLDERS}"
-        for folder in ${EXCLUDED_FOLDERS} ; do
-            UNFORMATTED_FOLDERS=$(echo "${UNFORMATTED_FOLDERS}" | sed -e "s/${folder}//g")
-        done
-    fi
-    if [ -n "${EXCLUDED_ADDONS}" ] ; then
-        bashio::log.warning "Excluded addons:\n${EXCLUDED_ADDONS}"
-        for addon in ${EXCLUDED_ADDONS} ; do
-            UNFORMATTED_ADDONS="$(echo "${UNFORMATTED_ADDONS}" | sed -e "s/${addon}//g")"
-        done
-    fi
-    if [ -n "${UNFORMATTED_ADDONS}" ] && [ -n "${UNFORMATTED_FOLDERS}" ] ; then
-        for addon in ${UNFORMATTED_ADDONS} ; do
-            ADDONS="${ADDONS}--addons ${addon} "
-        done
-        for folder in ${UNFORMATTED_FOLDERS} ; do
-            FOLDERS="${FOLDERS}--folders ${folder} "
-        done
+    local base_folders="addons/local homeassistant media share ssl"
+    local installed_addons=$(bashio::supervisor.addons)
+    local name="${BACKUP_CUSTOM_PREFIX} $(date +'%Y-%m-%d %H-%M')"
+    local data="{\"name\":\"${name}\" \"password\": \"${BACKUP_PASSWORD}\"}"
+
+    if bashio::var.has_value "${BACKUP_EXCLUDE_ADDONS}" ] || bashio::var.has_value "${BACKUP_EXCLUDE_FOLDERS}"; then
+        bashio::log.info "Creating partial backup: \"${name}\""
+
+        local excluded_folders=$(echo "${BACKUP_EXCLUDE_FOLDERS}")
+        local excluded_addons=$(echo "${BACKUP_EXCLUDE_ADDONS}")
+        local unformatted_folders="${base_folders}"
+        local unformatted_addons="${installed_addons}"
+        
+        if bashio::var.has_value "${excluded_folders}"; then
+          bashio::log.warning "Excluded folder(s):\n ${excluded_folders}"
+          for folder in ${excluded_folders} ; do
+              unformatted_folders=$(echo "${unformatted_folders}" | sed -e "s/${folder}//g")
+          done
         fi
-        bashio::log.info "Creating partial backup"
-        bashio::log.debug "Including ${FOLDERS} and ${ADDONS}"
-        slug=$(ha backups new --raw-json --name="${name}" ${ADDONS} ${FOLDERS} --password="${BACKUP_PASSWORD}" | jq --raw-output '.data.slug')
+        if bashio::var.has_value "${excluded_addons}"; then
+          bashio::log.warning "Excluded addon(s):\n${excluded_addons}"
+          for addon in ${excluded_addons} ; do
+              unformatted_addons="$(echo "${unformatted_addons}" | sed -e "s/${addon}//g")"
+          done
+        fi
+
+        local addons=$(echo ${unformatted_addons} | sed "s/ /\", \"/g")
+        local folders=$(echo "${unformatted_folders}" | sed "s/ /\", \"/g" | sed "s/, \"\"//g")
+        bashio::log.debug "Including folder(s) \"${folders}\""
+        bashio::log.debug "Including addon(s) \"${addons}\""
+
+        local data="$(echo $data | tr -d '}'), \"addons\": [\"${addons}\"], \"folders\": [\"${folders}\"]}" # append addon and folder set
+        if ! SLUG=$(bashio::api.supervisor "POST" "/backups/new/partial" "${data}" ".slug"); then
+            bashio::exit.nok "Error creating partial backup!"
+        fi
     else
-        bashio::log.info "Creating full backup"
-        slug=$(ha backups new --raw-json --name="${name}" --password="${BACKUP_PASSWORD}" | jq --raw-output '.data.slug')
+        bashio::log.info "Creating full backup: \"${name}\""
+
+        if ! SLUG=$(bashio::api.supervisor "POST" "/backups/new/full" "${data}" ".slug"); then
+            bashio::exit.nok "Error creating full backup!"
+        fi
+
     fi
-    bashio::log.info "Backup created: ${slug}"
+
+    bashio::log.info "Backup created: ${SLUG}"
+    return "${__BASHIO_EXIT_OK}"
 }
 
 function copy-backup-to-remote {
 
     if [ "${SSH_ENABLED}" = true ] ; then
         cd /backup/ || exit
-            bashio::log.info "Copying ${slug}.tar to ${SSH_REMOTE_DIRECTORY} on ${REMOTE_HOST} using SCP"
-            scp -F "${HOME}/.ssh/config" "${slug}.tar" remote:"${SSH_REMOTE_DIRECTORY}/"
-            bashio::log.info "Backup copied to ${SSH_REMOTE_DIRECTORY}/${slug}.tar on ${REMOTE_HOST}"
+            bashio::log.info "Copying ${SLUG}.tar to ${SSH_REMOTE_DIRECTORY} on ${REMOTE_HOST} using SCP"
+            scp -F "${HOME}/.ssh/config" "${SLUG}.tar" remote:"${SSH_REMOTE_DIRECTORY}/"
+            bashio::log.info "Backup copied to ${SSH_REMOTE_DIRECTORY}/${SLUG}.tar on ${REMOTE_HOST}"
 
         if [ "${BACKUP_FRIENDLY_NAME}" = true ] ; then
-            bashio::log.notice "Renaming ${slug}.tar to ${name}.tar"
-            ssh remote "mv \"${SSH_REMOTE_DIRECTORY}/${slug}.tar\" \"${SSH_REMOTE_DIRECTORY}/${name}.tar\""
+            bashio::log.notice "Renaming ${SLUG}.tar to ${name}.tar"
+            ssh remote "mv \"${SSH_REMOTE_DIRECTORY}/${SLUG}.tar\" \"${SSH_REMOTE_DIRECTORY}/${name}.tar\""
             bashio::log.info "Backup renamed to ${SSH_REMOTE_DIRECTORY}/${name}.tar on ${REMOTE_HOST}"
         fi
     bashio::log.info "SCP complete"
@@ -162,12 +168,12 @@ function rclone_backups {
         bashio::log.info "Starting rclone"
         if [ "$RCLONE_COPY" = true ] ; then
             if [ "$BACKUP_FRIENDLY_NAME" = true ] ; then
-                bashio::log.debug "Copying ${slug}.tar to ${RCLONE_REMOTE_DIRECTORY}/${name}.tar"
-                rclone copyto "${slug}.tar" "${REMOTE_HOST}:${RCLONE_REMOTE_DIRECTORY}/${name}".tar
+                bashio::log.debug "Copying ${SLUG}.tar to ${RCLONE_REMOTE_DIRECTORY}/${name}.tar"
+                rclone copyto "${SLUG}.tar" "${REMOTE_HOST}:${RCLONE_REMOTE_DIRECTORY}/${name}".tar
                 bashio::log.debug "Finished rclone copy"
             else
-                bashio::log.debug "Copying ${slug}.tar to ${RCLONE_REMOTE_DIRECTORY}/${slug}.tar"
-                rclone copy "${slug}.tar" "${REMOTE_HOST}:${RCLONE_REMOTE_DIRECTORY}"
+                bashio::log.debug "Copying ${SLUG}.tar to ${RCLONE_REMOTE_DIRECTORY}/${SLUG}.tar"
+                rclone copy "${SLUG}.tar" "${REMOTE_HOST}:${RCLONE_REMOTE_DIRECTORY}"
                 bashio::log.debug "Finished rclone copy"
             fi
         fi
@@ -195,8 +201,8 @@ function delete-local-backup {
     if [[ "${BACKUP_KEEP_LOCAL}" == "all" ]]; then
         :
     elif [[ -z "${BACKUP_KEEP_LOCAL}" ]]; then
-        bashio::log.warning "Deleting local backup: ${slug}"
-        ha backups remove "${slug}"
+        bashio::log.warning "Deleting local backup: ${SLUG}"
+        ha backups remove "${SLUG}"
     else
 
         last_date_to_keep=$(ha backups list --raw-json | jq .data.backups[].date | sort -r | \
