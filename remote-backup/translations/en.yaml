@@ -28,7 +28,7 @@ configuration:
     name: Folder to exclude from backup
   backup_exclude_addons:
     name: Addon to exclude from backup
-    description: Give the addons slug which equals the addon hostname using '_' instead of '-', e.g. core-mariadb
+    description: Give the addons slug which equals the addon hostname using '_' instead of '-', e.g. core_mariadb
   backup_keep_local:
     name: Local backups to keep
     description: default is 'all', give a number for the last x backups to keep or empty to immediately remove created backups after copying.
@@ -39,7 +39,7 @@ configuration:
     description: Copies Home Assistant backups to the remote server
   ssh_remote_directory:
     name: SSH remote directory
-    description: Remote directory the backups are copied to
+    description: Remote directory the backups are copied to (path must exist)
   rsync_enabled:
     name: Enable rsync
     description: Clones local folders to remote server (including backups)
