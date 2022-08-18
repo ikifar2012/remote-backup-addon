@@ -1,25 +1,54 @@
 configuration:
   debug:
     name: Enable debugging
+  remote_host:
+    name: Remote host
+    description: The hostname or IP address of the remote server
+  remote_port:
+    name: Remote port
+    description: Port number of the remote server
+  remote_user:
+    name: Username
+    description: Username to be used for authentication with remote server
+  remote_password:
+    name: Password
+    description: Password to be used for authentication with remote server
+  remote_key:
+    name: SSH private key
+    description: SSH private key file to be used for authentication with remote server. This be located in the directory 'ssl' of Home Assistant.
+  remote_host_key_algorithms:
+    name: Host key algorithms
+    description: Can be used to enable further (legacy) algorithms for authentication  
+  backup_friendly_name:
+    name: Friendly name
+    description: Rename the backup on the destination server to match the name in the Home Assistant UI
+  backup_custom_prefix:
+    name: Custom backup name prefix
+  backup_exclude_folders:
+    name: Folder to exclude from backup
+  backup_exclude_addons:
+    name: Addon to exclude from backup
+    description: Give the addons slug which equals the addon hostname using '_' instead of '-', e.g. core-mariadb
+  backup_keep_local:
+    name: Local backups to keep
+    description: default is 'all', give a number for the last x backups to keep or empty to immediately remove created backups after copying.
+  backup_password:
+    name: Password for protected backup
   ssh_enabled:
     name: Enable SSH
     description: Copies Home Assistant backups to the remote server
-  friendly_name:
-    name: Friendly name
-    description: Rename the backup on the destination server to match the name in the Home Assistant UI
-  custom_prefix:
-    name: Custom backup name prefix
-  ssh_key:
-    name: SSH key
-    description: The filename of the SSH key, which must be located in the directory 'ssl' of Home Assistant.
-  exclude_folders:
-    name: Folder to exclude from backup
-  exclude_addons:
-    name: Addon to exclude from backup
-    description: Give the addons slug which equals the addon hostname using '_' instead of '-', e.g. core-mariadb
+  ssh_remote_directory:
+    name: SSH remote directory
+    description: Remote directory the backups are copied to
   rsync_enabled:
     name: Enable rsync
     description: Clones local folders to remote server (including backups)
+  rsync_rootfolder:
+    name: rsync root folder
+    description: Root folder to which Home Assistant directories are synchronized
   rsync_exclude:
-    name: Path patterns to exclude from sync
+    name: rsync path patterns to exclude from sync
     description: This feature uses the rsync --exclude scheme
+  rclone_enabled:
+    name: Enable rclone
+    description: Experimental!
