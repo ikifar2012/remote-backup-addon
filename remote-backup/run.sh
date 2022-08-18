@@ -43,6 +43,9 @@ function add-ssh-key {
         mkdir -p ~/.ssh
         cp "/ssl/${REMOTE_KEY}" "${HOME}"/.ssh/id_rsa
         chmod 600 "${HOME}/.ssh/id_rsa"
+        bashio::log.debug "Adding key of remote host ${REMOTE_HOST} to known hosts."
+        ssh-keyscan -t rsa ${REMOTE_HOST} >> ${HOME}/.ssh/known_hosts \
+          || bashio::log.error "Failed to add ${REMOTE_HOST} host key"
         ssh-keygen -y -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub
         (
             echo "Host remote"
@@ -137,9 +140,7 @@ function rsync_folders {
     else
         local FLAGS='-a'
     fi
-    bashio::log.debug "Adding key of remote host ${RSYNC_HOST} to known hosts."
-    ssh-keyscan -t rsa ${RSYNC_HOST} >> ~/.ssh/known_hosts \
-      || bashio::log.error "Failed to add ${RSYNC_HOST} host key"
+
     echo "${RSYNC_EXCLUDE}" > /tmp/rsync_exclude.txt
     if bashio::var.has_value "${RSYNC_EXCLUDE}"; then   
         bashio::log.warning "File patterns that have been excluded:\n${RSYNC_EXCLUDE}"
@@ -161,13 +162,13 @@ function rclone_backups {
         bashio::log.info "Starting rclone"
         if [ "$RCLONE_COPY" = true ] ; then
             if [ "$BACKUP_FRIENDLY_NAME" = true ] ; then
-                    bashio::log.debug "Copying ${slug}.tar to ${RCLONE_REMOTE_DIRECTORY}/${name}.tar"
-                    rclone copyto "${slug}.tar" "${REMOTE_HOST}:${RCLONE_REMOTE_DIRECTORY}/${name}".tar
-                    bashio::log.debug "Finished rclone copy"
+                bashio::log.debug "Copying ${slug}.tar to ${RCLONE_REMOTE_DIRECTORY}/${name}.tar"
+                rclone copyto "${slug}.tar" "${REMOTE_HOST}:${RCLONE_REMOTE_DIRECTORY}/${name}".tar
+                bashio::log.debug "Finished rclone copy"
             else
-                    bashio::log.debug "Copying ${slug}.tar to ${RCLONE_REMOTE_DIRECTORY}/${slug}.tar"
-                    rclone copy "${slug}.tar" "${REMOTE_HOST}:${RCLONE_REMOTE_DIRECTORY}"
-                    bashio::log.debug "Finished rclone copy"
+                bashio::log.debug "Copying ${slug}.tar to ${RCLONE_REMOTE_DIRECTORY}/${slug}.tar"
+                rclone copy "${slug}.tar" "${REMOTE_HOST}:${RCLONE_REMOTE_DIRECTORY}"
+                bashio::log.debug "Finished rclone copy"
             fi
         fi
         if [ "${RCLONE_SYNC}" = true ] ; then
