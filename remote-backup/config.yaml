@@ -36,7 +36,7 @@ options:
   exclude_folders: []
   exclude_addons: []
   remote_directory: ""
-  zip_password: ""
+  backup_password: ""
   keep_local_backup: "all"
   rsync_enabled: false
   rsync_host: ""
@@ -68,7 +68,7 @@ schema:
   exclude_addons:
     - str?
   remote_directory: str?
-  zip_password: str?
+  backup_password: str?
   keep_local_backup: match(^(all|[+]?\d*)$)
   rsync_enabled: bool?
   rsync_host: str?

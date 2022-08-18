@@ -13,7 +13,7 @@ SSH_HOST_KEY_ALGORITHMS=$(bashio::config "ssh_host_key_algorithms")
 EXCLUDE_FOLDERS=$(bashio::config "exclude_folders")
 EXCLUDE_ADDONS=$(bashio::config "exclude_addons")
 REMOTE_DIRECTORY=$(bashio::config "remote_directory")
-ZIP_PASSWORD=$(bashio::config 'zip_password')
+BACKUP_PASSWORD=$(bashio::config 'backup_password')
 KEEP_LOCAL_BACKUP=$(bashio::config 'keep_local_backup')
 
 RSYNC_ENABLED=$(bashio::config "rsync_enabled")
@@ -99,11 +99,11 @@ function create-local-backup {
         done
         fi
         bashio::log.info "Creating partial backup"
-        bashio::log.debug "Including ${FOLDERS}and ${ADDONS}"
-        slug=$(ha backups new --raw-json --name="${name}" ${ADDONS} ${FOLDERS} | jq --raw-output '.data.slug')
+        bashio::log.debug "Including ${FOLDERS} and ${ADDONS}"
+        slug=$(ha backups new --raw-json --name="${name}" ${ADDONS} ${FOLDERS} --password="${BACKUP_PASSWORD}" | jq --raw-output '.data.slug')
     else
         bashio::log.info "Creating full backup"
-        slug=$(ha backups new --raw-json --name="${name}" | jq --raw-output '.data.slug')
+        slug=$(ha backups new --raw-json --name="${name}" --password="${BACKUP_PASSWORD}" | jq --raw-output '.data.slug')
     fi
     bashio::log.info "Backup created: ${slug}"
 }
@@ -112,26 +112,14 @@ function copy-backup-to-remote {
 
     if [ "${SSH_ENABLED}" = true ] ; then
         cd /backup/ || exit
-        if [[ -z "${ZIP_PASSWORD}" ]]; then
             bashio::log.info "Copying ${slug}.tar to ${REMOTE_DIRECTORY} on ${SSH_HOST} using SCP"
             scp -F "${HOME}/.ssh/config" "${slug}.tar" remote:"${REMOTE_DIRECTORY}"
             bashio::log.info "Backup copied to ${REMOTE_DIRECTORY}/${slug}.tar on ${SSH_HOST}"
-        else
-            bashio::log.info "Copying password-protected ${slug}.zip to ${REMOTE_DIRECTORY} on ${SSH_HOST} using SCP"
-            zip -P "$ZIP_PASSWORD" "${slug}.zip" "${slug}".tar
-            scp -F "${HOME}/.ssh/config" "${slug}.zip" remote:"${REMOTE_DIRECTORY}" && rm "${slug}.zip"
-            bashio::log.info "Backup copied to ${REMOTE_DIRECTORY}/${slug}.zip on ${SSH_HOST}"
-        fi
+
         if [ "${FRIENDLY_NAME}" = true ] ; then
-            if [[ -z "${ZIP_PASSWORD}" ]]; then
                 bashio::log.notice "Renaming ${slug}.tar to ${name}.tar"
                 ssh remote "mv \"${REMOTE_DIRECTORY}/${slug}.tar\" \"${REMOTE_DIRECTORY}/${name}.tar\""
                 bashio::log.info "Backup renamed to ${REMOTE_DIRECTORY}/${name}.tar on ${SSH_HOST}"
-            else
-                bashio::log.info "Renaming ${slug}.zip to ${name}.zip"
-                ssh remote "mv \"${REMOTE_DIRECTORY}/${slug}.zip\" \"${REMOTE_DIRECTORY}/${name}.zip\""
-                bashio::log.info "Backup renamed to ${REMOTE_DIRECTORY}/${name}.zip on ${SSH_HOST}"
-            fi
         fi
     bashio::log.info "SCP complete"
     fi
@@ -176,25 +164,13 @@ function rclone_backups {
         bashio::log.info "Starting rclone"
         if [ "$RCLONE_COPY" = true ] ; then
             if [ "$FRIENDLY_NAME" = true ] ; then
-                if [[ -z $ZIP_PASSWORD  ]]; then
                     bashio::log.debug "Copying ${slug}.tar to ${RCLONE_REMOTE_DIRECTORY}/${name}.tar"
                     rclone copyto "${slug}.tar" "${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}/${name}".tar
                     bashio::log.debug "Finished rclone copy"
-                else
-                    bashio::log.debug "Copying ${slug}.zip to ${RCLONE_REMOTE_DIRECTORY}/${name}.zip"
-                    rclone copyto "${slug}.zip" "${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}/${name}".zip
-                    bashio::log.debug "Finished rclone copy"
-                fi
             else
-                if [[ -z "${ZIP_PASSWORD}"  ]]; then
                     bashio::log.debug "Copying ${slug}.tar to ${RCLONE_REMOTE_DIRECTORY}/${slug}.tar"
                     rclone copy "${slug}.tar" "${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}"
                     bashio::log.debug "Finished rclone copy"
-                else
-                    bashio::log.debug "Copying ${slug}.zip to ${RCLONE_REMOTE_DIRECTORY}/${slug}.zip"
-                    rclone copy "${slug}.zip" "${RCLONE_REMOTE}:${RCLONE_REMOTE_DIRECTORY}"
-                    bashio::log.debug "Finished rclone copy"
-                fi
             fi
         fi
         if [ "${RCLONE_SYNC}" = true ] ; then
