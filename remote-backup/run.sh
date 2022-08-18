@@ -29,11 +29,21 @@ RCLONE_COPY=$(bashio::config "rclone_copy")
 RCLONE_SYNC=$(bashio::config "rclone_sync")
 RCLONE_RESTORE=$(bashio::config "rclone_restore")
 
+BACKUP_NAME="${BACKUP_CUSTOM_PREFIX} $(date +'%Y-%m-%d %H-%M')"
+
 function set-debug-level {
   # default log level according to bashio const.sh is INFO
   if bashio::var.true "${DEBUG}"; then    
     bashio::log.level "debug"
   fi
+}
+
+function die {
+  local message=${1:-'no message'}
+  local title=${2:-'Addon: Remote Backup'}
+
+  bashio::api.supervisor POST /core/api/services/persistent_notification/create "{\"message\":\"${message}\", \"title\":\"${title}\"}"
+  bashio::exit.nok "${message}"
 }
 
 function add-ssh-key {
@@ -60,7 +70,6 @@ function add-ssh-key {
 
         chmod 600 "${HOME}/.ssh/config"
         chmod 644 "${HOME}/.ssh/id_rsa.pub"
-        bashio::log.info "SSH key added"
     fi
 }
 
@@ -68,11 +77,10 @@ function create-local-backup {
     # Bind variables
     local base_folders="addons/local homeassistant media share ssl"
     local installed_addons=$(bashio::supervisor.addons)
-    local name="${BACKUP_CUSTOM_PREFIX} $(date +'%Y-%m-%d %H-%M')"
-    local data="{\"name\":\"${name}\" \"password\": \"${BACKUP_PASSWORD}\"}"
+    local data="{\"name\":\"${BACKUP_NAME}\", \"password\": \"${BACKUP_PASSWORD}\"}"
 
-    if bashio::var.has_value "${BACKUP_EXCLUDE_ADDONS}" ] || bashio::var.has_value "${BACKUP_EXCLUDE_FOLDERS}"; then
-        bashio::log.info "Creating partial backup: \"${name}\""
+    if bashio::var.has_value "${BACKUP_EXCLUDE_ADDONS}" || bashio::var.has_value "${BACKUP_EXCLUDE_FOLDERS}"; then
+        bashio::log.info "Creating partial backup: \"${BACKUP_NAME}\""
 
         local excluded_folders=$(echo "${BACKUP_EXCLUDE_FOLDERS}")
         local excluded_addons=$(echo "${BACKUP_EXCLUDE_ADDONS}")
@@ -98,14 +106,14 @@ function create-local-backup {
         bashio::log.debug "Including addon(s) \"${addons}\""
 
         local data="$(echo $data | tr -d '}'), \"addons\": [\"${addons}\"], \"folders\": [\"${folders}\"]}" # append addon and folder set
-        if ! SLUG=$(bashio::api.supervisor "POST" "/backups/new/partial" "${data}" ".slug"); then
-            bashio::exit.nok "Error creating partial backup!"
+        if ! SLUG=$(bashio::api.supervisor POST /backups/new/partial "${data}" .slug); then
+            die "Error creating partial backup!"
         fi
     else
-        bashio::log.info "Creating full backup: \"${name}\""
+        bashio::log.info "Creating full backup: \"${BACKUP_NAME}\""
 
-        if ! SLUG=$(bashio::api.supervisor "POST" "/backups/new/full" "${data}" ".slug"); then
-            bashio::exit.nok "Error creating full backup!"
+        if ! SLUG=$(bashio::api.supervisor POST /backups/new/full "${data}" .slug); then
+            die "Error creating full backup!"
         fi
 
     fi
@@ -115,26 +123,34 @@ function create-local-backup {
 }
 
 function copy-backup-to-remote {
-
-    if [ "${SSH_ENABLED}" = true ] ; then
-        cd /backup/ || exit
-            bashio::log.info "Copying ${SLUG}.tar to ${SSH_REMOTE_DIRECTORY} on ${REMOTE_HOST} using SCP"
-            scp -F "${HOME}/.ssh/config" "${SLUG}.tar" remote:"${SSH_REMOTE_DIRECTORY}/"
-            bashio::log.info "Backup copied to ${SSH_REMOTE_DIRECTORY}/${SLUG}.tar on ${REMOTE_HOST}"
-
-        if [ "${BACKUP_FRIENDLY_NAME}" = true ] ; then
-            bashio::log.notice "Renaming ${SLUG}.tar to ${name}.tar"
-            ssh remote "mv \"${SSH_REMOTE_DIRECTORY}/${SLUG}.tar\" \"${SSH_REMOTE_DIRECTORY}/${name}.tar\""
-            bashio::log.info "Backup renamed to ${SSH_REMOTE_DIRECTORY}/${name}.tar on ${REMOTE_HOST}"
-        fi
-    bashio::log.info "SCP complete"
+    if bashio::var.false "${SSH_ENABLED}"; then
+        bashio::log.debug "SCP disabled."
+        return "${__BASHIO_EXIT_OK}"
     fi
+
+    cd /backup/ \
+        || bashio::log.fatal "Error accessing directory /backup" \
+        && return "${__BASHIO_EXIT_NOK}"
+    bashio::log.info "Copying backup using SCP"
+    if ! scp -F "${HOME}/.ssh/config" "/backup/${SLUG}.tar" remote:"${SSH_REMOTE_DIRECTORY}/"; then
+        bashio::log.error "Error copying backup ${SLUG}.tar to ${SSH_REMOTE_DIRECTORY} on ${REMOTE_HOST}"
+        return "${__BASHIO_EXIT_NOK}"
+    fi
+
+    if bashio::var.true "${BACKUP_FRIENDLY_NAME}"; then
+        bashio::log.info "Renaming ${SLUG}.tar to ${BACKUP_NAME}.tar"
+        if ! ssh remote "mv \"${SSH_REMOTE_DIRECTORY}/${SLUG}.tar\" \"${SSH_REMOTE_DIRECTORY}/${BACKUP_NAME}.tar\""; then
+            bashio::log.error "Error renaming backup to ${SSH_REMOTE_DIRECTORY}/${BACKUP_NAME}.tar on ${REMOTE_HOST}"
+            return "${__BASHIO_EXIT_NOK}"
+        fi
+    fi
+    return "${__BASHIO_EXIT_OK}"
 }
 
 function rsync_folders {
     if bashio::var.false "${RSYNC_ENABLED}"; then
         bashio::log.debug "rsync disabled."
-        return
+        return "${__BASHIO_EXIT_OK}"
     fi
 
     local FOLDERS="/config /addons /backup /share /ssl" # put directories without trailing slash
@@ -153,11 +169,12 @@ function rsync_folders {
     fi
 
     bashio::log.debug "Syncing ${FOLDERS}"
-    sshpass -p "${REMOTE_PASSWORD}" \
-      rsync ${FLAGS} --port ${REMOTE_PORT} --exclude-from='/tmp/rsync_exclude.txt' ${FOLDERS} "${RSYNC_URL}/" --delete \
-      || bashio::log.fatal "Error syncing folder(s) ${FOLDERS}"
+    if ! sshpass -p "${REMOTE_PASSWORD}" rsync ${FLAGS} --port ${REMOTE_PORT} --exclude-from='/tmp/rsync_exclude.txt' ${FOLDERS} "${RSYNC_URL}/" --delete; then
+        bashio::log.error "Error syncing folder(s) ${FOLDERS}"
+        return "${__BASHIO_EXIT_NOK}"
+    fi
 
-    bashio::log.info "Finished rsync"
+    return "${__BASHIO_EXIT_OK}"
 }
 
 function rclone_backups {
@@ -168,8 +185,8 @@ function rclone_backups {
         bashio::log.info "Starting rclone"
         if [ "$RCLONE_COPY" = true ] ; then
             if [ "$BACKUP_FRIENDLY_NAME" = true ] ; then
-                bashio::log.debug "Copying ${SLUG}.tar to ${RCLONE_REMOTE_DIRECTORY}/${name}.tar"
-                rclone copyto "${SLUG}.tar" "${REMOTE_HOST}:${RCLONE_REMOTE_DIRECTORY}/${name}".tar
+                bashio::log.debug "Copying ${SLUG}.tar to ${RCLONE_REMOTE_DIRECTORY}/${BACKUP_NAME}.tar"
+                rclone copyto "${SLUG}.tar" "${REMOTE_HOST}:${RCLONE_REMOTE_DIRECTORY}/${BACKUP_NAME}.tar"
                 bashio::log.debug "Finished rclone copy"
             else
                 bashio::log.debug "Copying ${SLUG}.tar to ${RCLONE_REMOTE_DIRECTORY}/${SLUG}.tar"
@@ -192,7 +209,6 @@ function rclone_backups {
         fi
     fi
 }
-
 
 function delete-local-backup {
 
@@ -219,12 +235,17 @@ function delete-local-backup {
     fi
 }
 
+# general setup and backup
 set-debug-level
 add-ssh-key
 create-local-backup
-copy-backup-to-remote
-rsync_folders
+
+# different remote cloning modes
+copy-backup-to-remote || bashio::log.fatal "SCP failed."
+rsync_folders || bashio::log.fatal "rsync failed."
 rclone_backups
+
+# cleanup
 delete-local-backup
 
 bashio::log.info "Backup process done!"

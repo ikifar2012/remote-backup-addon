@@ -17,12 +17,13 @@ arch:
 homeassistant: "2021.9.0"
 hassio_api: true
 hassio_role: manager
+homeassistant_api: true
 map:
   - config
   - addons
   - share
   - ssl
-  - backup:rw
+  - backup
   
 options:
   debug: false
