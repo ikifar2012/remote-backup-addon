@@ -59,7 +59,7 @@ function add-ssh-key {
         ) || bashio::log.error "Failed to create SSH key pair!"
 
         bashio::log.debug "Adding public key of remote host ${REMOTE_HOST} to known hosts."
-        ssh-keyscan -t rsa ${REMOTE_HOST} >> ${HOME}/.ssh/known_hosts \
+        ssh-keyscan -t rsa -p ${REMOTE_PORT} ${REMOTE_HOST} >> ${HOME}/.ssh/known_hosts \
             || bashio::log.error "Failed to add public key for remote host ${REMOTE_HOST}!"
         (
             echo "Host remote"
