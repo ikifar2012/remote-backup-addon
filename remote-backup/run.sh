@@ -92,20 +92,18 @@ function create-local-backup {
     if bashio::var.has_value "${BACKUP_EXCLUDE_ADDONS}" || bashio::var.has_value "${BACKUP_EXCLUDE_FOLDERS}"; then
         bashio::log.info "Creating partial backup: \"${BACKUP_NAME}\""
 
-        local excluded_folders=$(echo "${BACKUP_EXCLUDE_FOLDERS}")
-        local excluded_addons=$(echo "${BACKUP_EXCLUDE_ADDONS}")
         local unformatted_folders="${base_folders}"
         local unformatted_addons="${installed_addons}"
         
-        if bashio::var.has_value "${excluded_folders}"; then
-            bashio::log.warning "Excluded folder(s):\n ${excluded_folders}"
-            for folder in ${excluded_folders} ; do
+        if bashio::var.has_value "${BACKUP_EXCLUDE_FOLDERS}"; then
+            bashio::log.notice "Excluded folder(s):\n${BACKUP_EXCLUDE_FOLDERS}"
+            for folder in ${BACKUP_EXCLUDE_FOLDERS} ; do
                 unformatted_folders=$(echo "${unformatted_folders}" | sed -e "s/${folder}//g")
             done
         fi
-        if bashio::var.has_value "${excluded_addons}"; then
-            bashio::log.warning "Excluded addon(s):\n${excluded_addons}"
-            for addon in ${excluded_addons} ; do
+        if bashio::var.has_value "${BACKUP_EXCLUDE_ADDONS}"; then
+            bashio::log.notice "Excluded addon(s):\n${BACKUP_EXCLUDE_ADDONS}"
+            for addon in ${BACKUP_EXCLUDE_ADDONS} ; do
                 unformatted_addons="$(echo "${unformatted_addons}" | sed -e "s/${addon}//g")"
             done
         fi
