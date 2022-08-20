@@ -164,19 +164,19 @@ function rsync-folders {
     local rsync_url="${REMOTE_USER}@${REMOTE_HOST}:${RSYNC_ROOTFOLDER}"
     local flags='-a -r'
 
-    bashio::log.info "Starting rsync"
+    bashio::log.info "Copying backup using rsync."
     if bashio::var.true "${DEBUG}"; then    
         local flags="${flags} -v"
     fi
 
     echo "${RSYNC_EXCLUDE}" > /tmp/rsync_exclude.txt
     if bashio::var.has_value "${RSYNC_EXCLUDE}"; then   
-        bashio::log.warning "File patterns that have been excluded:\n${RSYNC_EXCLUDE}"
+        bashio::log.notice "Excluded rsync file patterns:\n${RSYNC_EXCLUDE}"
     fi
 
     bashio::log.debug "Syncing ${folders}"
     if ! sshpass -p "${REMOTE_PASSWORD}" rsync ${flags} --port ${REMOTE_PORT} --exclude-from='/tmp/rsync_exclude.txt' ${folders} "${rsync_url}/" --delete; then
-        bashio::log.error "Error syncing folder(s) ${folders}."
+        bashio::log.error "Error rsyncing folder(s) ${folders} to ${rsync_url}!"
         return "${__BASHIO_EXIT_NOK}"
     fi
 
@@ -188,7 +188,7 @@ function rclone-backups {
         cd /backup/ || exit
         mkdir -p ~/.config/rclone/
         cp -a /ssl/rclone.conf ~/.config/rclone/rclone.conf
-        bashio::log.info "Starting rclone"
+        bashio::log.info "Copying backup using rclone."
         if [ "$RCLONE_COPY" = true ] ; then
             if [ "$BACKUP_FRIENDLY_NAME" = true ] ; then
                 bashio::log.debug "Copying ${SLUG}.tar to ${RCLONE_REMOTE_DIRECTORY}/${BACKUP_NAME}.tar"
@@ -238,7 +238,7 @@ function delete-local-backup {
 
     if bashio::var.is_empty "${BACKUP_KEEP_LOCAL}"; then
         if bashio::var.has_value "$SLUG"; then
-            bashio::log.warning "Deleting local backup: ${SLUG}"
+            bashio::log.notice "Deleting local backup: ${SLUG}"
             if ! bashio::api.supervisor DELETE /backups/${SLUG}; then
                 bashio::log.error "Failed to delete backup: ${SLUG}"
                 return "${__BASHIO_EXIT_NOK}"
@@ -255,7 +255,7 @@ function delete-local-backup {
         echo "${backup_list}" | jq -c ".backups[]" | while read -r backup; do
             if [[ $(echo "${backup}" | jq ".date" | xargs date -D "%Y-%m-%dT%T" +%s --date ) -lt ${last_date_to_keep} ]]; then
                 local backup_slug=$(echo "${backup}" | jq -r .slug)
-                bashio::log.warning "Deleting local backup: ${backup_slug}"
+                bashio::log.notice "Deleting local backup: ${backup_slug}"
                 if ! bashio::api.supervisor DELETE /backups/${backup_slug}; then
                     bashio::log.error "Failed to delete backup: ${backup_slug}"
                     ret="${__BASHIO_EXIT_NOK}"
