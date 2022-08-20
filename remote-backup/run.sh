@@ -33,18 +33,34 @@ BACKUP_NAME="${BACKUP_CUSTOM_PREFIX} $(date +'%Y-%m-%d %H-%M')"
 
 function set-debug-level {
   # default log level according to bashio const.sh is INFO
-  if bashio::var.true "${DEBUG}"; then    
+  if bashio::var.true "${DEBUG}"; then
     bashio::log.level "debug"
   fi
 }
 
-function die {
-  local message=${1:-'no message'}
-  local title=${2:-'Addon: Remote Backup Failed!'}
+# Arguments:
+#   $1 result should be ok or error
+#   $2 message message to send with the event
+function fire_event {
+    local result=${1}
+    local message=${2:-}
 
-  # catch return code which is always false, see https://github.com/hassio-addons/bashio/issues/31
-  local ret=$(bashio::api.supervisor POST /core/api/services/persistent_notification/create "{\"message\":\"${message}\", \"title\":\"${title}\"}")
-  bashio::exit.nok "${message}"
+    if bashio::var.has_value "${message}"; then
+        message=",\"message:\":\"${message}\""
+    fi
+
+    # catch return code which is always false, see https://github.com/hassio-addons/bashio/issues/31
+    local ret=$(bashio::api.supervisor POST /core/api/events/remote_backup_status "{\"result\":\"${result}\"${message}}")
+}
+function die {
+    local message=${1:-'no message'}
+    local title=${2:-'Addon: Remote Backup Failed!'}
+
+    # catch return code which is always false, see https://github.com/hassio-addons/bashio/issues/31
+    local ret=$(bashio::api.supervisor POST /core/api/services/persistent_notification/create \
+        "{\"message\":\"${message}\", \"title\":\"${title}\", \"notification_id\":\"addon-remote-backup\"}")
+    fire_event "error" "${message}"
+    bashio::exit.nok "${message}"
 }
 
 # prepare SSH environment/configuration
@@ -277,4 +293,5 @@ clone-to-remote || die "Cloning backup(s) to remote host ${REMOTE_HOST} failed! 
 delete-local-backup || die "Removing local backup(s) failed! See log for details."
 
 bashio::log.info "Backup process done!"
+fire_event "ok" "Backup ${BACKUP_NAME} created."
 bashio::exit.ok
