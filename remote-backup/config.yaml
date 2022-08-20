@@ -24,23 +24,23 @@ map:
   - share
   - ssl
   - backup
-  
+
 options:
   debug: false
-  remote_host: ""
+  remote_host: null
   remote_port: 22
-  remote_user: ""
-  remote_password: ""
-  remote_key: ""
-  remote_host_key_algorithms: ""
+  remote_user: null
+  remote_password: null
+  remote_key: null
+  remote_host_key_algorithms: null
   backup_friendly_name: true
   backup_custom_prefix: Automated backup
   backup_exclude_folders: []
   backup_exclude_addons: []
   backup_keep_local: "all"
-  backup_password: ""
+  backup_password: null
   ssh_enabled: true
-  ssh_remote_directory: ""
+  ssh_remote_directory: null
   rsync_enabled: false
   rsync_rootfolder: hassio-sync
   rsync_exclude:
@@ -48,7 +48,7 @@ options:
     - "/config/*.db-wal"
     - "/config/*.db"
   rclone_enabled: false
-  rclone_remote_directory: ""
+  rclone_remote_directory: null
   rclone_copy: false
   rclone_sync: false
   rclone_restore: false
@@ -67,7 +67,7 @@ schema:
     - match(^[A-Za-z0-9_\-\.\*\/\?\+\\]*$)?
   backup_exclude_addons:
     - str?
-  backup_keep_local: match(^(all|[+]?\d*)$)
+  backup_keep_local: match(^(all|[+]?\d*)$)?
   backup_password: str?
   ssh_enabled: bool
   ssh_remote_directory: str?
