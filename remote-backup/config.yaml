@@ -64,7 +64,7 @@ schema:
   backup_friendly_name: bool?
   backup_custom_prefix: str?
   backup_exclude_folders:
-    - match(^[A-Za-z0-9_\-\.\*\/\?\+\\]*$)?
+    - match(^[A-Za-z0-9_\-\.\*\/\?\+\\ ]*$)?
   backup_exclude_addons:
     - str?
   backup_keep_local: match(^(all|[+]?\d*)$)?
@@ -74,7 +74,7 @@ schema:
   rsync_enabled: bool
   rsync_rootfolder: str?
   rsync_exclude:
-    - match(^[A-Za-z0-9_\-\.\*\/\?\+\\]+$)
+    - match(^[A-Za-z0-9_\-\.\*\/\?\+\\ ]+$)
   rclone_enabled: bool
   rclone_remote_directory: str?
   rclone_copy: bool?
