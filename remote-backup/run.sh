@@ -200,36 +200,45 @@ function rsync-folders {
 }
 
 function rclone-backups {
-    if [ "${RCLONE_ENABLED}" = true ] ; then
-        cd /backup/ || exit
+    if bashio::var.false "${RCLONE_ENABLED}"; then
+        bashio::log.debug "Rclone disabled."
+        return "${__BASHIO_EXIT_OK}"
+    fi
+
+    (
+        cd /backup/
         mkdir -p ~/.config/rclone/
         cp -a /ssl/rclone.conf ~/.config/rclone/rclone.conf
+    ) || bashio::log.error "Failed to prepare rclone configuration!"
+
+    if bashio::var.true "${RCLONE_COPY}"; then
+        local remote_name=$SLUG
+        if bashio::var.true "${BACKUP_FRIENDLY_NAME}"; then
+            remote_name=$BACKUP_NAME
+        fi
         bashio::log.info "Copying backup using rclone."
-        if [ "$RCLONE_COPY" = true ] ; then
-            if [ "$BACKUP_FRIENDLY_NAME" = true ] ; then
-                bashio::log.debug "Copying ${SLUG}.tar to ${RCLONE_REMOTE_DIRECTORY}/${BACKUP_NAME}.tar"
-                rclone copyto "${SLUG}.tar" "${REMOTE_HOST}:${RCLONE_REMOTE_DIRECTORY}/${BACKUP_NAME}.tar"
-                bashio::log.debug "Finished rclone copy"
-            else
-                bashio::log.debug "Copying ${SLUG}.tar to ${RCLONE_REMOTE_DIRECTORY}/${SLUG}.tar"
-                rclone copy "${SLUG}.tar" "${REMOTE_HOST}:${RCLONE_REMOTE_DIRECTORY}"
-                bashio::log.debug "Finished rclone copy"
-            fi
-        fi
-        if [ "${RCLONE_SYNC}" = true ] ; then
-            bashio::log.info "Syncing Backups"
-            rclone sync . "${REMOTE_HOST}:${RCLONE_REMOTE_DIRECTORY}"
-            bashio::log.info "Finished rclone sync"
-        fi
-        if [ "${RCLONE_RESTORE}" = true ] ; then
-            DATEFORMAT=$(date +%F)
-            RESTORENAME="restore-${DATEFORMAT}"
-            mkdir -p "${RESTORENAME}"
-            bashio::log.info "Restoring Backups to ${RESTORENAME}"
-            rclone copyto "${REMOTE_HOST}:${RCLONE_REMOTE_DIRECTORY} ${RESTORENAME}/"
-            bashio::log.info "Finished rclone restore"
+        if ! rclone copyto "${SLUG}.tar" "${REMOTE_HOST}:${RCLONE_REMOTE_DIRECTORY}/${remote_name}.tar"; then
+            bashio::log.error "Error rclone ${SLUG}.tar to ${REMOTE_HOST}:${RCLONE_REMOTE_DIRECTORY}/${remote_name}.tar!"
+            return "${__BASHIO_EXIT_NOK}"
         fi
     fi
+    if bashio::var.true "${RCLONE_SYNC}"; then
+        bashio::log.info "Syncing backups using rclone"
+        if ! rclone sync . "${REMOTE_HOST}:${RCLONE_REMOTE_DIRECTORY}"; then
+            bashio::log.error "Error syncing backups by rclone!"
+            return "${__BASHIO_EXIT_NOK}"
+        fi
+    fi
+    if bashio::var.true "${RCLONE_RESTORE}"; then
+        local restore_name="restore-$(date +%F)"
+        mkdir -p "${restore_name}"
+        bashio::log.info "Restoring backups to ${restore_name} using rclone"
+        if ! rclone copyto "${REMOTE_HOST}:${RCLONE_REMOTE_DIRECTORY} ${restore_name}/"; then
+            bashio::log.error "Error restoring backups from ${REMOTE_HOST}:${RCLONE_REMOTE_DIRECTORY}!"
+            return "${__BASHIO_EXIT_NOK}"
+        fi
+    fi
+    return "${__BASHIO_EXIT_OK}"
 }
 
 function clone-to-remote {
