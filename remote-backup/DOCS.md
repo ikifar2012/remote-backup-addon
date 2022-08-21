@@ -2,11 +2,11 @@
 
 Please visit the documentation at [addons.mathesonsteplock.ca](https://addons.mathesonsteplock.ca/docs/addons/remote-backup/basic-config)
 
-# Persistent Notification
+## Persistent Notification
 
-In case of an error, a persistent notification with the error message is created. Please see the logs in to find out what happend (you might also want to enable debugging in the configuration).
+In case of an error, a persistent notification with the error message is created. Please see the logs to find out what happend (you might also want to enable debugging in the configuration).
 
-# Using Events
+## Using Events
 
 The add-on creates an event each time it is has been executed.
 
