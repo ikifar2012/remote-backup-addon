@@ -154,19 +154,17 @@ function copy-backup-to-remote {
         return "${__BASHIO_EXIT_OK}"
     fi
 
+    local remote_name=$SLUG
+    if bashio::var.true "${BACKUP_FRIENDLY_NAME}"; then
+        remote_name=$BACKUP_NAME
+    fi
+
     bashio::log.info "Copying backup using SCP."
-    if ! scp -F "${HOME}/.ssh/config" "/backup/${SLUG}.tar" remote:"${SSH_REMOTE_DIRECTORY}/"; then
+    if ! scp -F "${HOME}/.ssh/config" "/backup/${SLUG}.tar" remote:"'${SSH_REMOTE_DIRECTORY}/${remote_name}.tar'"; then
         bashio::log.error "Error copying backup ${SLUG}.tar to ${SSH_REMOTE_DIRECTORY} on ${REMOTE_HOST}."
         return "${__BASHIO_EXIT_NOK}"
     fi
 
-    if bashio::var.true "${BACKUP_FRIENDLY_NAME}"; then
-        bashio::log.info "Renaming ${SLUG}.tar to ${BACKUP_NAME}.tar"
-        if ! ssh remote "mv \"${SSH_REMOTE_DIRECTORY}/${SLUG}.tar\" \"${SSH_REMOTE_DIRECTORY}/${BACKUP_NAME}.tar\""; then
-            bashio::log.error "Error renaming backup to ${SSH_REMOTE_DIRECTORY}/${BACKUP_NAME}.tar on ${REMOTE_HOST}"
-            return "${__BASHIO_EXIT_NOK}"
-        fi
-    fi
     return "${__BASHIO_EXIT_OK}"
 }
 
