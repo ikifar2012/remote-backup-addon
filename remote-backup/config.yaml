@@ -1,7 +1,7 @@
 name: Remote Backup
 version: "2022.7.2"
 slug: remote_backup
-description: Automatically create and backup HA backups using SCP
+description: Automatically create and backup HA backups using SFTP (SCP), rsync, or rclone (experimental)
 image: ikifar/remote-backup-{arch}
 url: https://addons.mathesonsteplock.ca/docs/addons/remote-backup/basic-config
 codenotary: cas@mathesonsteplock.ca

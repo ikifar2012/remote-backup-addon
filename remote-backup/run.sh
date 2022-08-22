@@ -29,7 +29,9 @@ RCLONE_COPY=$(bashio::config "rclone_copy")
 RCLONE_SYNC=$(bashio::config "rclone_sync")
 RCLONE_RESTORE=$(bashio::config "rclone_restore")
 
+# script global shortcuts
 BACKUP_NAME="${BACKUP_CUSTOM_PREFIX} $(date +'%Y-%m-%d %H-%M')"
+SSH_HOME="${HOME}/.ssh"
 
 function set-debug-level {
   # default log level according to bashio const.sh is INFO
@@ -66,41 +68,52 @@ function die {
 # prepare SSH environment/configuration
 # function does never fail to continue with further commands
 function add-ssh-key {
-    if bashio::var.true "${SSH_ENABLED}" || bashio::var.true "${RSYNC_ENABLED}"; then
-        bashio::log.info "Adding SSH key."
-        (
-            mkdir -p ${HOME}/.ssh
-            cp "/ssl/${REMOTE_KEY}" "${HOME}/.ssh/id_rsa"
-            ssh-keygen -y -f ${HOME}/.ssh/id_rsa > ${HOME}/.ssh/id_rsa.pub
-        ) || bashio::log.error "Failed to create SSH key pair!"
+    if bashio::var.false "${SSH_ENABLED}" && bashio::var.false "${RSYNC_ENABLED}"; then
+        bashio::log.debug "Not creating configuration, SSH/RSYNC disabled."
+        return
+    fi
 
-        bashio::log.debug "Adding public key of remote host ${REMOTE_HOST} to known hosts."
-        ssh-keyscan -t rsa -p ${REMOTE_PORT} ${REMOTE_HOST} >> ${HOME}/.ssh/known_hosts \
-            || bashio::log.error "Failed to add public key for remote host ${REMOTE_HOST}!"
+    bashio::log.info "Adding SSH configuration."
+    # prepare SSH key pair
+    mkdir -p ${SSH_HOME} || bashio::log.error "Failed to create .ssh directory!"
+    if bashio::var.has_value "${REMOTE_KEY}"; then
         (
-            echo "Host remote"
-            echo "    IdentityFile ${HOME}/.ssh/id_rsa"
-            echo "    HostName ${REMOTE_HOST}"
-            echo "    User ${REMOTE_USER}"
-            echo "    Port ${REMOTE_PORT}"
-            echo "    StrictHostKeyChecking no"
+            cp "/ssl/${REMOTE_KEY}" "${SSH_HOME}/id_rsa"
+            ssh-keygen -y -f ${SSH_HOME}/id_rsa > ${SSH_HOME}/id_rsa.pub
+            chmod 600 "${SSH_HOME}/id_rsa"
+            chmod 644 "${SSH_HOME}/id_rsa.pub"
+        ) || bashio::log.error "Failed to create SSH key pair!"
+    fi
+
+    # copy known_hosts if available
+    if bashio::fs.file_exists "/ssl/known_hosts"; then
+      cp "/ssl/known_hosts" "${SSH_HOME}/known_hosts" \
+          || bashio::log.error "Failed to copy known_hosts file!"
+    else
+      bashio::log.warning "Missing known_hosts file! Retrieving public key of remote host ${REMOTE_HOST}."
+      ssh-keyscan -t rsa -p ${REMOTE_PORT} ${REMOTE_HOST} >> ${SSH_HOME}/known_hosts \
+          || bashio::log.error "Failed to add public key for remote host ${REMOTE_HOST}!"
+    fi
+
+    # generate configuration file
+    (
+        echo "Host remote"
+        if bashio::fs.file_exists "${SSH_HOME}/id_rsa"; then
+            echo "    IdentityFile ${SSH_HOME}/id_rsa"
+        fi
+        echo "    HostName ${REMOTE_HOST}"
+        echo "    User ${REMOTE_USER}"
+        echo "    Port ${REMOTE_PORT}"
         if bashio::var.has_value "${REMOTE_HOST_KEY_ALGORITHMS}"; then
             echo "    HostKeyAlgorithms ${REMOTE_HOST_KEY_ALGORITHMS}"
         fi
-        ) > "${HOME}/.ssh/config"
-
-        (
-            chmod 600 "${HOME}/.ssh/id_rsa"
-            chmod 600 "${HOME}/.ssh/config"
-            chmod 644 "${HOME}/.ssh/id_rsa.pub"
-        ) || bashio::log.error "Failed to set SSH file permissions!"
-    fi
+    ) > "${SSH_HOME}/config"
+    chmod 600 "${SSH_HOME}/config" || bashio::log.error "Failed to set SSH configuration file permissions!"
 }
 
 # call Home Assistant to create a local backup
 # function fails in case local backup is not created
 function create-local-backup {
-    # Bind local variables
     local base_folders="addons/local homeassistant media share ssl"
     local installed_addons=$(bashio::supervisor.addons)
     local data="{\"name\":\"${BACKUP_NAME}\", \"password\": \"${BACKUP_PASSWORD}\"}"
@@ -160,7 +173,7 @@ function copy-backup-to-remote {
     fi
 
     bashio::log.info "Copying backup using SCP."
-    if ! scp -F "${HOME}/.ssh/config" "/backup/${SLUG}.tar" remote:"'${SSH_REMOTE_DIRECTORY}/${remote_name}.tar'"; then
+    if ! scp -F "${SSH_HOME}/config" "/backup/${SLUG}.tar" remote:"'${SSH_REMOTE_DIRECTORY}/${remote_name}.tar'"; then
         bashio::log.error "Error copying backup ${SLUG}.tar to ${SSH_REMOTE_DIRECTORY} on ${REMOTE_HOST}."
         return "${__BASHIO_EXIT_NOK}"
     fi
