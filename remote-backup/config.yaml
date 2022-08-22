@@ -27,20 +27,20 @@ map:
 
 options:
   debug: false
-  remote_host: null
+  remote_host: ""
   remote_port: 22
-  remote_user: null
-  remote_password: null
-  remote_key: null
+  remote_user: ""
+  remote_password: ""
+  remote_key: ""
   remote_host_key_algorithms: null
   backup_friendly_name: true
   backup_custom_prefix: Automated backup
   backup_exclude_folders: []
   backup_exclude_addons: []
   backup_keep_local: "all"
-  backup_password: null
+  backup_password: ""
   ssh_enabled: true
-  ssh_remote_directory: null
+  ssh_remote_directory: "hassio-backup"
   rsync_enabled: false
   rsync_rootfolder: hassio-sync
   rsync_exclude:
@@ -48,7 +48,7 @@ options:
     - "/config/*.db-wal"
     - "/config/*.db"
   rclone_enabled: false
-  rclone_remote_directory: null
+  rclone_remote_directory: ""
   rclone_copy: false
   rclone_sync: false
   rclone_restore: false
@@ -59,7 +59,7 @@ schema:
   remote_port: port
   remote_user: str
   remote_password: str?
-  remote_key: str?  
+  remote_key: str?
   remote_host_key_algorithms: str?
   backup_friendly_name: bool?
   backup_custom_prefix: str?
@@ -74,7 +74,7 @@ schema:
   rsync_enabled: bool
   rsync_rootfolder: str?
   rsync_exclude:
-    - match(^[A-Za-z0-9_\-\.\*\/\?\+\\ ]+$)
+    - match(^[A-Za-z0-9_\-\.\*\/\?\+\\ ]+$)?
   rclone_enabled: bool
   rclone_remote_directory: str?
   rclone_copy: bool?
