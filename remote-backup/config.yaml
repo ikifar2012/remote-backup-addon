@@ -26,19 +26,13 @@ map:
   - backup
 
 options:
-  debug: false
-  remote_host: ""
+  remote_host: null
   remote_port: 22
-  remote_user: ""
-  remote_password: ""
+  remote_user: null
   remote_key: ""
-  remote_host_key_algorithms: null
   backup_friendly_name: true
   backup_custom_prefix: Automated backup
-  backup_exclude_folders: []
-  backup_exclude_addons: []
   backup_keep_local: "all"
-  backup_password: ""
   ssh_enabled: true
   ssh_remote_directory: "hassio-backup"
   rsync_enabled: false
@@ -48,10 +42,6 @@ options:
     - "/config/*.db-wal"
     - "/config/*.db"
   rclone_enabled: false
-  rclone_remote_directory: ""
-  rclone_copy: false
-  rclone_sync: false
-  rclone_restore: false
 
 schema:
   debug: bool?

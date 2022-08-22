@@ -15,7 +15,7 @@ configuration:
     description: Password to be used for authentication with remote server
   remote_key:
     name: SSH private key
-    description: SSH private key file to be used for authentication with remote server. This be located in the directory 'ssl' of Home Assistant.
+    description: SSH private key file to be used for authentication with remote server. The key must be stored in the directory 'ssl' of Home Assistant.
   remote_host_key_algorithms:
     name: Host key algorithms
     description: Can be used to enable further (legacy) algorithms for authentication  
@@ -51,5 +51,4 @@ configuration:
     name: rsync path patterns to exclude from sync
     description: This feature uses the rsync --exclude scheme
   rclone_enabled:
-    name: Enable rclone
-    description: Experimental!
+    name: Enable rclone (experimental)
