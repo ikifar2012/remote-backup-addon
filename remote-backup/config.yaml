@@ -41,7 +41,6 @@ options:
     - "/config/*.db-shm"
     - "/config/*.db-wal"
     - "/config/*.db"
-  rclone_enabled: false
 
 schema:
   debug: bool?
@@ -65,7 +64,7 @@ schema:
   rsync_rootfolder: str?
   rsync_exclude:
     - match(^[A-Za-z0-9_\-\.\*\/\?\+\\ ]+$)?
-  rclone_enabled: bool
+  rclone_enabled: bool?
   rclone_remote_directory: str?
   rclone_copy: bool?
   rclone_sync: bool?
