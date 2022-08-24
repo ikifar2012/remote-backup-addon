@@ -26,12 +26,12 @@ ARG BUILD_VERSION
 # Labels
 LABEL \
     io.hass.name="Remote Backup" \
-    io.hass.description="Automatically create and backup HA backups using SFTP (SCP), rsync" \
+    io.hass.description="Automatically create and transfer HA backups using SFTP (SCP), rsync." \
     io.hass.arch="${BUILD_ARCH}" \
     io.hass.type="addon" \
     io.hass.version=${BUILD_VERSION} \
     maintainer="Matheson Steplock <mathesonsteplock.ca>" \
-    org.label-schema.description="Automatically create and backup HA backups using SFTP (SCP), rsync" \
+    org.label-schema.description="Automatically create and transfer HA backups using SFTP (SCP), rsync." \
     org.label-schema.build-date=${BUILD_DATE} \
     org.label-schema.name="Remote Backup" \
     org.label-schema.schema-version="1.0" \
