@@ -7,18 +7,11 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ENV LANG C.UTF-8
 
 # Setup base
-RUN apk add --no-cache jq openssh-client zip sshpass rsync wget curl unzip
+RUN apk add --no-cache jq openssh-client sshpass rsync curl unzip
 
 # Rclone CLI
 ARG BUILD_ARCH
 RUN curl https://rclone.org/install.sh | bash
-
-
-# Hass.io CLI
-ARG BUILD_ARCH
-ARG CLI_VERSION
-RUN wget -O /usr/bin/ha "https://github.com/home-assistant/cli/releases/download/4.18.0/ha_${BUILD_ARCH}" \
-    && chmod a+x /usr/bin/ha
 
 # Copy data
 COPY run.sh /
@@ -33,12 +26,12 @@ ARG BUILD_VERSION
 # Labels
 LABEL \
     io.hass.name="Remote Backup" \
-    io.hass.description="Automatically create and backup HA snapshots using SCP" \
+    io.hass.description="Automatically create and backup HA backups using SFTP (SCP), rsync" \
     io.hass.arch="${BUILD_ARCH}" \
     io.hass.type="addon" \
     io.hass.version=${BUILD_VERSION} \
     maintainer="Matheson Steplock <mathesonsteplock.ca>" \
-    org.label-schema.description="Automatically create and backup HA snapshots using SCP" \
+    org.label-schema.description="Automatically create and backup HA backups using SFTP (SCP), rsync" \
     org.label-schema.build-date=${BUILD_DATE} \
     org.label-schema.name="Remote Backup" \
     org.label-schema.schema-version="1.0" \
