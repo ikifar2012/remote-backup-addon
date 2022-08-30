@@ -109,22 +109,22 @@ function create-local-backup {
         if bashio::var.has_value "${backup_exclude_folders}"; then
             bashio::log.notice "Excluded folder(s):\n${backup_exclude_folders}"
             for folder in ${backup_exclude_folders} ; do
-                unformatted_folders=$(echo "${unformatted_folders}" | sed -e "s/${folder}//g")
+                unformatted_folders="${unformatted_folders[@]/$folder}"
             done
         fi
         if bashio::var.has_value "${backup_exclude_addons}"; then
             bashio::log.notice "Excluded addon(s):\n${backup_exclude_addons}"
             for addon in ${backup_exclude_addons} ; do
-                unformatted_addons="$(echo "${unformatted_addons}" | sed -e "s/${addon}//g")"
+                unformatted_addons="${unformatted_addons[@]/$addon}"
             done
         fi
 
-        local -r addons=$(echo ${unformatted_addons} | sed "s/ /\", \"/g")
-        local -r folders=$(echo "${unformatted_folders}" | sed "s/ /\", \"/g" | sed "s/, \"\"//g")
-        bashio::log.debug "Including folder(s) \"${folders}\""
-        bashio::log.debug "Including addon(s) \"${addons}\""
+        local -r addons=$(jq -nc '$ARGS.positional' --args ${unformatted_addons[@]})
+        local -r folders=$(jq -nc '$ARGS.positional' --args ${unformatted_folders[@]})
+        bashio::log.debug "Including folder(s) ${folders}"
+        bashio::log.debug "Including addon(s) ${addons}"
 
-        data="$(echo $data | tr -d '}'), \"addons\": [\"${addons}\"], \"folders\": [\"${folders}\"]}" # append addon and folder set
+        data="$(echo $data | tr -d '}'), \"addons\": ${addons}, \"folders\": ${folders}}" # append addon and folder set
         if ! SLUG=$(bashio::api.supervisor POST /backups/new/partial "${data}" .slug); then
             bashio::log.fatal "Error creating partial backup!"
             return "${__BASHIO_EXIT_NOK}"
