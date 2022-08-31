@@ -150,13 +150,14 @@ function copy-backup-to-remote {
     fi
 
     local -r remote_directory=$(bashio::config "ssh_remote_directory" "")
+    local -r remote_directory=$(echo "${remote_directory}" | sed 's/\//\\\//g') # escape remote directory
     local remote_name=$SLUG
     if bashio::config.true "backup_friendly_name"; then
         remote_name=$BACKUP_NAME
     fi
 
     bashio::log.info "Copying backup using SCP."
-    if ! scp -F "${SSH_HOME}/config" "/backup/${SLUG}.tar" remote:"'${remote_directory}/${remote_name}.tar'"; then
+    if ! scp -F "${SSH_HOME}/config" "/backup/${SLUG}.tar" remote:"${remote_directory}/${remote_name}.tar"; then
         bashio::log.error "Error copying backup ${SLUG}.tar to ${remote_directory} on ${REMOTE_HOST}."
         return "${__BASHIO_EXIT_NOK}"
     fi
