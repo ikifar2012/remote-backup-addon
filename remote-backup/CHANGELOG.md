@@ -13,7 +13,7 @@
 
 Huge thanks to [@patman15](https://github.com/patman15) for all of his work this release!
 
-**Full Changelog**: https://github.com/ikifar2012/remote-backup-addon/compare/2022.7.2...2022.8.0
+**Full Changelog**: https://github.com/ikifar2012/remote-backup-addon/compare/2022.7.2...2022.9.0
 
 # 2022.7.2
 
