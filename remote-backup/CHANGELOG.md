@@ -11,7 +11,7 @@
 - Bump base image to 12.2.3
 - added SFTP/SCP fallback and password auth #64
 
-Special thanks to [@patman15](https://github.com/patman15) for all of his work this release!
+Huge thanks to [@patman15](https://github.com/patman15) for all of his work this release!
 
 **Full Changelog**: https://github.com/ikifar2012/remote-backup-addon/compare/2022.7.2...2022.8.0
 
