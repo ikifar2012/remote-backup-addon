@@ -145,7 +145,7 @@ function create-local-backup {
 
 function copy-backup-to-remote {
     if ! bashio::config.true "ssh_enabled"; then
-        bashio::log.debug "SCP disabled."
+        bashio::log.debug "SFTP/SCP disabled."
         return "${__BASHIO_EXIT_OK}"
     fi
 
@@ -155,10 +155,13 @@ function copy-backup-to-remote {
         remote_name=$BACKUP_NAME
     fi
 
-    bashio::log.info "Copying backup using SCP."
-    if ! scp -F "${SSH_HOME}/config" "/backup/${SLUG}.tar" remote:"'${remote_directory}/${remote_name}.tar'"; then
-        bashio::log.error "Error copying backup ${SLUG}.tar to ${remote_directory} on ${REMOTE_HOST}."
-        return "${__BASHIO_EXIT_NOK}"
+    bashio::log.info "Copying backup using SFTP/SCP."
+    if ! sshpass -p "${REMOTE_PASSWORD}" scp -s -F "${SSH_HOME}/config" "/backup/${SLUG}.tar" remote:"${remote_directory}/${remote_name}.tar"; then
+        bashio::log.warning "SFTP transfer failed, falling back to SCP."
+        if ! sshpass -p "${REMOTE_PASSWORD}" scp -O -F "${SSH_HOME}/config" "/backup/${SLUG}.tar" remote:"\"${remote_directory}/${remote_name}.tar\""; then    
+            bashio::log.error "Error copying backup ${SLUG}.tar to ${remote_directory} on ${REMOTE_HOST}."
+            return "${__BASHIO_EXIT_NOK}"
+        fi
     fi
 
     return "${__BASHIO_EXIT_OK}"
