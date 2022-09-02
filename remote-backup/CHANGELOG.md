@@ -1,4 +1,4 @@
-# 2022.8.0
+# 2022.9.0
 
 - enable rsync key-based authentication #51
 - changed logging to bashio logger #52
