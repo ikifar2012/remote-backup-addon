@@ -66,6 +66,7 @@ schema:
     - match(^[A-Za-z0-9_\-\.\*\/\?\+\\ ]+$)?
   rclone_enabled: bool?
   rclone_remote_directory: str?
+  rclone_remote_host: str?
   rclone_copy: bool?
   rclone_sync: bool?
   rclone_restore: bool?
