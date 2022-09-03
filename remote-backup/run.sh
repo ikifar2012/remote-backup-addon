@@ -224,7 +224,7 @@ function rclone-backups {
     fi
     if bashio::config.true "rclone_sync"; then
         bashio::log.info "Syncing backups using rclone"
-        if ! rclone sync . "${rclone_remote_host}:${remote_directory}"; then
+        if ! rclone sync "/backup" "${rclone_remote_host}:${remote_directory}"; then
             bashio::log.error "Error syncing backups by rclone!"
             return "${__BASHIO_EXIT_NOK}"
         fi
@@ -233,7 +233,7 @@ function rclone-backups {
         local restore_name="restore-$(date +%F)"
         mkdir -p "${restore_name}"
         bashio::log.info "Restoring backups to ${restore_name} using rclone"
-        if ! rclone copyto "${rclone_remote_host}:${remote_directory} ${restore_name}/"; then
+        if ! rclone copyto "${rclone_remote_host}:${remote_directory} /backup/${restore_name}/"; then
             bashio::log.error "Error restoring backups from ${rclone_remote_host}:${remote_directory}!"
             return "${__BASHIO_EXIT_NOK}"
         fi
