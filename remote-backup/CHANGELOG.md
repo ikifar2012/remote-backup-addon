@@ -20,6 +20,7 @@ and click "Edit in YAML", you can then copy that to a text file and map those se
 - Security enhancements #60
 - Bump base image to 12.2.3
 - added SFTP/SCP fallback and password auth #64
+- Restore rclone config option #66
 
 Huge thanks to [@patman15](https://github.com/patman15) for all of his work this release!
 
