@@ -1,5 +1,15 @@
 # 2022.9.0
 
+## Please read before upgrading
+
+**This release includes a ton of breaking changes**
+**Please read the documentation carefully before upgrading**
+**Be aware that some of the configuration options have been renamed and may overwrite your current settings**
+
+Please backup your configuration before upgrading by clicking the vertical dots in the top right corner of the add-on configuration page
+and click "Edit in YAML", you can then copy that to a text file and map those settings to their new config options as per the 
+[documentation](https://addons.mathesonsteplock.ca/docs/addons/remote-backup/basic-config).
+
 - enable rsync key-based authentication #51
 - changed logging to bashio logger #52
 - Rsync cleanup #54
