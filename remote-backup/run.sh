@@ -99,7 +99,7 @@ function create-local-backup {
     local -r backup_exclude_addons=$(bashio::config "backup_exclude_addons")
     local -r base_folders="addons/local homeassistant media share ssl"
     local -r backup_password=$(bashio::config "backup_password")
-    if bashio::config.has_value "${backup_password}"; then
+    if bashio::config.has_value "backup_password"; then
         bashio::log.info "Creating local backup with password."
         local data="{\"name\":\"${BACKUP_NAME}\", \"password\": \"${backup_password}\"}"
     else
