@@ -268,7 +268,7 @@ function delete-local-backup {
     fi
 
     if bashio::config.is_empty "backup_keep_local"; then
-        if bashio::config.has_value "$SLUG"; then
+        if bashio::var.has_value "$SLUG"; then
             bashio::log.notice "Deleting local backup: ${SLUG}"
             if ! bashio::api.supervisor DELETE /backups/${SLUG}; then
                 bashio::log.error "Failed to delete backup: ${SLUG}"
