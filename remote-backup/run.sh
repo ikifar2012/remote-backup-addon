@@ -28,7 +28,7 @@ function fire-event {
     local -r result=${1}
     local message=${2:-}
 
-    if bashio::var.has_value "${message}"; then
+    if bashio::config.has_value "${message}"; then
         message=",\"message:\":\"${message}\""
     fi
 
@@ -106,19 +106,19 @@ function create-local-backup {
         bashio::log.warning "No password set, creating a local backup without password."
         local data="{\"name\":\"${BACKUP_NAME}\"}"
     fi
-    if bashio::var.has_value "${backup_exclude_addons}" || bashio::var.has_value "${backup_exclude_folders}"; then
+    if bashio::config.has_value "backup_exclude_addons" || bashio::config.has_value "backup_exclude_folders"; then
         bashio::log.info "Creating partial backup: \"${BACKUP_NAME}\""
 
         local unformatted_folders="${base_folders}"
         local unformatted_addons=$(bashio::supervisor.addons)
         
-        if bashio::var.has_value "${backup_exclude_folders}"; then
+        if bashio::config.has_value "backup_exclude_folders"; then
             bashio::log.notice "Excluded folder(s):\n${backup_exclude_folders}"
             for folder in ${backup_exclude_folders} ; do
                 unformatted_folders="${unformatted_folders[@]/$folder}"
             done
         fi
-        if bashio::var.has_value "${backup_exclude_addons}"; then
+        if bashio::config.has_value "backup_exclude_addons"; then
             bashio::log.notice "Excluded addon(s):\n${backup_exclude_addons}"
             for addon in ${backup_exclude_addons} ; do
                 unformatted_addons="${unformatted_addons[@]/$addon}"
@@ -190,7 +190,7 @@ function rsync-folders {
 
     local -r rsync_exclude=$(bashio::config "rsync_exclude" "")
     echo "${rsync_exclude}" > /tmp/rsync_exclude.txt
-    if bashio::var.has_value "rsync_exclude"; then
+    if bashio::config.has_value "rsync_exclude"; then
         bashio::log.notice "Excluded rsync file patterns:\n${rsync_exclude}"
     fi
 
