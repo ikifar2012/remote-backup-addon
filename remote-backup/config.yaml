@@ -1,5 +1,5 @@
 name: Remote Backup
-version: "2022.9.2"
+version: "2022.9.3"
 slug: remote_backup
 description: Automatically create and transfer HA backups using SFTP (SCP), rsync, or rclone (experimental)
 image: ikifar/remote-backup-{arch}
