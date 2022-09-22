@@ -1,3 +1,9 @@
+# 2022.9.4
+
+- Message typo fix #73
+
+**Full Changelog**: https://github.com/ikifar2012/remote-backup-addon/compare/2022.9.3...2022.9.4
+
 # 2022.9.3
 
 - Switch to `bashio::config.has_value` to fix #70
