@@ -28,7 +28,7 @@ function fire-event {
     local -r result=${1}
     local message=${2:-}
 
-    if bashio::config.has_value "${message}"; then
+    if bashio::var.has_value "${message}"; then
         message=",\"message:\":\"${message}\""
     fi
 
