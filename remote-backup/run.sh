@@ -5,6 +5,7 @@
 bashio::config.require "remote_host" "A target host for copying backups is necessary."
 bashio::config.require "remote_port" "A target host port for communication is necessary."
 bashio::config.require.username "remote_user"
+bashio::config.suggest.password "backup_password"
 declare -r REMOTE_HOST=$(bashio::config "remote_host")
 declare -r REMOTE_PORT=$(bashio::config "remote_port")
 declare -r REMOTE_USER=$(bashio::config "remote_user")
