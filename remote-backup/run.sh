@@ -95,30 +95,29 @@ function add-ssh-key {
 # call Home Assistant to create a local backup
 # function fails in case local backup is not created
 function create-local-backup {
-    local -r backup_exclude_folders=$(bashio::config "backup_exclude_folders")
-    local -r backup_exclude_addons=$(bashio::config "backup_exclude_addons")
     local -r base_folders="addons/local homeassistant media share ssl"
-    local -r backup_password=$(bashio::config "backup_password")
+    local data="{\"name\":\"${BACKUP_NAME}\"}"
+    local bak_type="non-encrypted"
+
     if bashio::config.has_value "backup_password"; then
-        bashio::log.info "Creating local backup with password."
-        local data="{\"name\":\"${BACKUP_NAME}\", \"password\": \"${backup_password}\"}"
-    else
-        bashio::log.warning "No password set, creating a local backup without password."
-        local data="{\"name\":\"${BACKUP_NAME}\"}"
+        data="$(echo $data | tr -d '}'), \"password\": \"$(bashio::config 'backup_password')\"}"
+        local -r bak_type="password encrypted"
     fi
     if bashio::config.has_value "backup_exclude_addons" || bashio::config.has_value "backup_exclude_folders"; then
-        bashio::log.info "Creating partial backup: \"${BACKUP_NAME}\""
+        bashio::log.info "Creating ${bak_type} partial backup: \"${BACKUP_NAME}\""
 
         local unformatted_folders="${base_folders}"
         local unformatted_addons=$(bashio::supervisor.addons)
         
         if bashio::config.has_value "backup_exclude_folders"; then
+            local -r backup_exclude_folders=$(bashio::config "backup_exclude_folders")
             bashio::log.notice "Excluded folder(s):\n${backup_exclude_folders}"
             for folder in ${backup_exclude_folders} ; do
                 unformatted_folders="${unformatted_folders[@]/$folder}"
             done
         fi
         if bashio::config.has_value "backup_exclude_addons"; then
+            local -r backup_exclude_addons=$(bashio::config "backup_exclude_addons")
             bashio::log.notice "Excluded addon(s):\n${backup_exclude_addons}"
             for addon in ${backup_exclude_addons} ; do
                 unformatted_addons="${unformatted_addons[@]/$addon}"
@@ -132,14 +131,14 @@ function create-local-backup {
 
         data="$(echo $data | tr -d '}'), \"addons\": ${addons}, \"folders\": ${folders}}" # append addon and folder set
         if ! SLUG=$(bashio::api.supervisor POST /backups/new/partial "${data}" .slug); then
-            bashio::log.fatal "Error creating partial backup!"
+            bashio::log.fatal "Error creating ${bak_type} partial backup!"
             return "${__BASHIO_EXIT_NOK}"
         fi
     else
-        bashio::log.info "Creating full backup: \"${BACKUP_NAME}\""
+        bashio::log.info "Creating ${bak_type} full backup: \"${BACKUP_NAME}\""
 
         if ! SLUG=$(bashio::api.supervisor POST /backups/new/full "${data}" .slug); then
-            bashio::log.fatal "Error creating full backup!"
+            bashio::log.fatal "Error creating ${bak_type} full backup!"
             return "${__BASHIO_EXIT_NOK}"
         fi
 
