@@ -5,10 +5,12 @@
 bashio::config.require "remote_host" "A target host for copying backups is necessary."
 bashio::config.require "remote_port" "A target host port for communication is necessary."
 bashio::config.require.username "remote_user"
+bashio::config.require "ssh_options"
 declare -r REMOTE_HOST=$(bashio::config "remote_host")
 declare -r REMOTE_PORT=$(bashio::config "remote_port")
 declare -r REMOTE_USER=$(bashio::config "remote_user")
 declare -r REMOTE_PASSWORD=$(bashio::config "remote_password" "")
+declare -r SSH_OPTIONS=$(bashio::config "ssh_options")
 
 # script global shortcuts
 declare -r BACKUP_NAME="$(bashio::config 'backup_custom_prefix' '') $(date +'%Y-%m-%d %H-%M')"
@@ -162,9 +164,9 @@ function copy-backup-to-remote {
     fi
 
     bashio::log.info "Copying backup using SFTP/SCP."
-    if ! sshpass -p "${REMOTE_PASSWORD}" scp -s -F "${SSH_HOME}/config" "/backup/${SLUG}.tar" "${REMOTE_HOST}":"${remote_directory}/${remote_name}.tar"; then
+    if ! sshpass -p "${REMOTE_PASSWORD}" scp "${SSH_OPTIONS}" -s -F "${SSH_HOME}/config" "/backup/${SLUG}.tar" "${REMOTE_HOST}":"${remote_directory}/${remote_name}.tar"; then
         bashio::log.warning "SFTP transfer failed, falling back to SCP."
-        if ! sshpass -p "${REMOTE_PASSWORD}" scp -O -F "${SSH_HOME}/config" "/backup/${SLUG}.tar" "${REMOTE_HOST}":"\"${remote_directory}/${remote_name}.tar\""; then    
+        if ! sshpass -p "${REMOTE_PASSWORD}" scp "${SSH_OPTIONS}" -O -F "${SSH_HOME}/config" "/backup/${SLUG}.tar" "${REMOTE_HOST}":"\"${remote_directory}/${remote_name}.tar\""; then    
             bashio::log.error "Error copying backup ${SLUG}.tar to ${remote_directory} on ${REMOTE_HOST}."
             return "${__BASHIO_EXIT_NOK}"
         fi
