@@ -30,6 +30,7 @@ options:
   remote_port: 22
   remote_user: null
   remote_key: ""
+  ssh_options: ""
   backup_friendly_name: true
   backup_custom_prefix: Automated backup
   backup_keep_local: "all"
@@ -50,6 +51,7 @@ schema:
   remote_password: str?
   remote_key: str?
   remote_host_key_algorithms: str?
+  ssh_options: str
   backup_friendly_name: bool?
   backup_custom_prefix: str?
   backup_exclude_folders:
