@@ -1,3 +1,11 @@
+# 2022.12.0
+
+- Bump Base Image to 12.2.7
+- extend connection debug messages #77
+- Logo #78
+
+**Full Changelog**: https://github.com/ikifar2012/remote-backup-addon/compare/2022.9.4...2022.12.0
+
 # 2022.9.4
 
 - Message typo fix #73
