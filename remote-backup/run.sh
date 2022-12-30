@@ -286,7 +286,7 @@ function clone-to-remote {
 }
 
 function delete-local-backup {
-    if bashio::config.equals "backup_keep_local" "all"; then
+    if bashio::config.equals "backup_keep_local" "all" || bashio::config.equals "backup_keep_local" "null"; then
         bashio::log.debug "Keep all backups."
         return "${__BASHIO_EXIT_OK}"
     fi
