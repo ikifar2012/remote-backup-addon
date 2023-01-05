@@ -295,7 +295,7 @@ function delete-local-backup {
         bashio::log.warning "Failed to reload backups!"
     fi
 
-    if bashio::config.is_empty "backup_keep_local" || bashio::config.equals "backup_keep_local" "null"; then
+    if bashio::config.is_empty "backup_keep_local" || bashio::config.equals "backup_keep_local" "null" || bashio::config.equals "keep_backup_local" "0"; then
         if bashio::var.has_value "$SLUG"; then
             bashio::log.notice "Deleting local backup: ${SLUG}"
             if ! bashio::api.supervisor DELETE /backups/${SLUG}; then
