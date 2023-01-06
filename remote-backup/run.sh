@@ -179,7 +179,7 @@ function copy-backup-to-remote {
     bashio::log.info "Copying backup using SFTP/SCP."
     (
       sshpass -p "${REMOTE_PASSWORD}" \
-        scp ${DEBUG_FLAG:-} -s -F "${SSH_HOME}/config" "/backup/${SLUG}.tar" remote:"${remote_directory}/${remote_name}.tar" || (
+        scp ${DEBUG_FLAG:-} -F "${SSH_HOME}/config" "/backup/${SLUG}.tar" remote:"${remote_directory}/${remote_name}.tar" || (
         bashio::log.warning "SFTP transfer failed, falling back to SCP: $(sshpass_error $?)"
         sshpass -p "${REMOTE_PASSWORD}" \
           scp ${DEBUG_FLAG:-} -O -F "${SSH_HOME}/config" "/backup/${SLUG}.tar" remote:"${remote_directory}/${remote_name}.tar" || (
