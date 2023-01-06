@@ -124,7 +124,7 @@ function create-local-backup {
 
         local unformatted_folders="${base_folders}"
         local unformatted_addons=$(bashio::supervisor.addons)
-        
+
         if bashio::config.has_value "backup_exclude_folders"; then
             local -r backup_exclude_folders=$(bashio::config "backup_exclude_folders")
             bashio::log.notice "Excluded folder(s):\n${backup_exclude_folders}"
@@ -286,7 +286,7 @@ function clone-to-remote {
 }
 
 function delete-local-backup {
-    if bashio::config.equals "backup_keep_local" "all" || bashio::config.equals "backup_keep_local" "null"; then
+    if bashio::config.equals "backup_keep_local" "all"; then
         bashio::log.debug "Keep all backups."
         return "${__BASHIO_EXIT_OK}"
     fi
@@ -295,7 +295,7 @@ function delete-local-backup {
         bashio::log.warning "Failed to reload backups!"
     fi
 
-    if bashio::config.is_empty "backup_keep_local"; then
+    if bashio::config.is_empty "backup_keep_local" || bashio::config.equals "backup_keep_local" "null" || bashio::config.equals "keep_backup_local" "0"; then
         if bashio::var.has_value "$SLUG"; then
             bashio::log.notice "Deleting local backup: ${SLUG}"
             if ! bashio::api.supervisor DELETE /backups/${SLUG}; then
