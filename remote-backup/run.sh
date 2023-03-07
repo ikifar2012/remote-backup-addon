@@ -266,7 +266,7 @@ function rclone-backups {
         mkdir -p "${restore_name}"
         bashio::log.info "Restoring backups to ${restore_name} using rclone"
         (
-            rclone ${DEBUG_FLAG:-} copyto "${rclone_remote_host}:${remote_directory} /backup/${restore_name}/" || (
+            rclone ${DEBUG_FLAG:-} copyto "${rclone_remote_host}:${remote_directory}" "/backup/${restore_name}/" || (
                 bashio::log.error "Error restoring backups from ${rclone_remote_host}:${remote_directory}!"
                 return "${__BASHIO_EXIT_NOK}"
             )
