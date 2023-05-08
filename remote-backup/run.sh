@@ -44,7 +44,7 @@ function fire-event {
     local message=${2:-}
 
     if bashio::var.has_value "${message}"; then
-        message=",\"message:\":\"${message}\""
+        message=",\"message\":\"${message}\""
     fi
 
     # catch return code which is always false, see https://github.com/hassio-addons/bashio/issues/31
@@ -189,7 +189,7 @@ function copy-backup-to-remote {
       )
     )
 
-    return "${__BASHIO_EXIT_OK}"
+    return "$?"
 }
 
 function rsync-folders {
