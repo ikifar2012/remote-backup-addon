@@ -74,7 +74,7 @@ function add-ssh-key {
     mkdir -p ${SSH_HOME} || bashio::log.error "Failed to create .ssh directory!"
     if bashio::config.has_value "remote_key"; then
         (
-            cp "/ssl/$(bashio::config 'remote_key')" "${SSH_HOME}/id_rsa"
+            cp "/config/$(bashio::config 'remote_key')" "${SSH_HOME}/id_rsa"
             ssh-keygen -y -f ${SSH_HOME}/id_rsa > ${SSH_HOME}/id_rsa.pub
             chmod 600 "${SSH_HOME}/id_rsa"
             chmod 644 "${SSH_HOME}/id_rsa.pub"
@@ -82,9 +82,9 @@ function add-ssh-key {
     fi
 
     # copy known_hosts if available
-    if bashio::fs.file_exists "/ssl/known_hosts"; then
-      bashio::log.debug "Using existing /ssl/known_hosts file."
-      cp "/ssl/known_hosts" "${SSH_HOME}/known_hosts" \
+    if bashio::fs.file_exists "/config/known_hosts"; then
+      bashio::log.debug "Using existing /config/known_hosts file."
+      cp "/config/known_hosts" "${SSH_HOME}/known_hosts" \
           || bashio::log.error "Failed to copy known_hosts file!"
     else
       bashio::log.warning "Missing known_hosts file! Retrieving public key of remote host ${REMOTE_HOST}."
@@ -236,7 +236,7 @@ function rclone-backups {
     (
         cd /backup/
         mkdir -p ~/.config/rclone/
-        cp -a /ssl/rclone.conf ~/.config/rclone/rclone.conf
+        cp -a /config/rclone.conf ~/.config/rclone/rclone.conf
     ) || bashio::log.error "Failed to prepare rclone configuration!"
 
     if bashio::config.true "rclone_copy"; then
