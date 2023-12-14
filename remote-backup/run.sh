@@ -10,7 +10,26 @@ declare -r REMOTE_HOST=$(bashio::config "remote_host")
 declare -r REMOTE_PORT=$(bashio::config "remote_port")
 declare -r REMOTE_USER=$(bashio::config "remote_user")
 declare -r REMOTE_PASSWORD=$(bashio::config "remote_password" "")
-
+function migrate_config {
+    # if ssh key file exists in /ssl, move it to /config
+   if bashio::config.has_value "remote_key"; then
+        if bashio::fs.file_exists "/ssl/$(bashio::config 'remote_key')"; then
+            bashio::log.notice "Migrating SSH key file from /ssl to /config."
+            mv "/ssl/$(bashio::config 'remote_key')" "/config/$(bashio::config 'remote_key')" \
+                || bashio::log.error "Failed to copy SSH key file!"
+        fi
+    fi
+    # if rclone config file exists in /ssl, move it to /config
+        if bashio::fs.file_exists "/ssl/rclone.conf"; then
+            bashio::log.notice "Migrating rclone config file from /ssl to /config."
+            mv "/ssl/rclone.conf" "/config/rclone.conf" \
+                || bashio::log.error "Failed to copy rclone config file!"
+        fi
+    # let user know that the migration is complete
+    if bashio::fs.directory_exists "/ssl" && bashio::fs.directory_exists "/config"; then
+        bashio::log.notice "Migration complete."
+    fi
+}
 # script global shortcuts
 declare -r BACKUP_NAME="$(bashio::config 'backup_custom_prefix' '') $(date +'%Y-%m-%d %H-%M')"
 declare -r SSH_HOME="${HOME}/.ssh"
@@ -329,8 +348,8 @@ function delete-local-backup {
 
 # general setup and backup
 set-debug-level
+migrate_config
 add-ssh-key
-
 create-local-backup || die "Local backup process failed! See log for details."
 clone-to-remote || die "Cloning backup(s) to remote host ${REMOTE_HOST} failed! See log for details."
 delete-local-backup || die "Removing local backup(s) failed! See log for details."
