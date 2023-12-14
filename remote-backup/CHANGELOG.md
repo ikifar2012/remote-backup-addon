@@ -7,7 +7,7 @@
 
 # 2022.12.1
 
-- Fix `scp: dest open` double quoting issue #86 addresses #84 
+- Fix `scp: dest open` double quoting issue #86 addresses #84
 - Correct null behavior #85 addresses #81
 - Bump Base Image to 13.0.1
 
