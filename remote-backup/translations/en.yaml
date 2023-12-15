@@ -26,7 +26,7 @@ configuration:
     name: Custom backup name prefix
   backup_exclude_folders:
     name: Folder to exclude from backup
-    description: valid options are addons/local, homeassistant, media, share, ssl
+    description: valid options are addons/local, homeassistant, media, share, ssl, all_addon_configs
   backup_exclude_addons:
     name: Addon to exclude from backup
     description: Give the addons slug which equals the addon hostname using '_' instead of '-', e.g. core_mariadb
