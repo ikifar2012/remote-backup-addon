@@ -2,8 +2,6 @@ name: "Publish"
 
 on:
   workflow_dispatch:
-    branches:
-      - master
   release:
     types: [published]
 
@@ -21,14 +19,13 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Publish
         uses: home-assistant/builder@master
-        env:
-          CAS_API_KEY: ${{ secrets.CAS_API_KEY }}
         with:
           args: |
             --all \
             --target remote-backup \
             --docker-user ${{ secrets.DOCKERHUB_USERNAME }} \
-            --docker-password ${{ secrets.DOCKERHUB_TOKEN }}
+            --docker-password ${{ secrets.DOCKERHUB_TOKEN }} \
+            --cosign
       - name: 🚀 Dispatch Repository Updater update signal
         uses: peter-evans/repository-dispatch@v2
         with:

@@ -1,13 +1,13 @@
 name: Remote Backup
-version: "2023.3.0"
+version: "2023.12.0"
 slug: remote_backup
 description: Automatically create and transfer HA backups using SFTP (SCP), rsync, or rclone (experimental)
 image: ikifar/remote-backup-{arch}
 url: https://addons.mathesonsteplock.ca/docs/addons/remote-backup/basic-config
-codenotary: cas@mathesonsteplock.ca
 startup: once
 boot: manual
 init: false
+apparmor: false
 arch:
   - aarch64
   - amd64
@@ -19,11 +19,13 @@ hassio_api: true
 hassio_role: manager
 homeassistant_api: true
 map:
-  - config
+  - addon_config:rw
   - addons
   - share
-  - ssl
-  - backup
+  - ssl:rw
+  - backup:rw
+  - homeassistant_config
+  - all_addon_configs
 
 options:
   remote_host: null

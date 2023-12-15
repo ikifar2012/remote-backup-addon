@@ -16,4 +16,5 @@ jobs:
             --test \
             --all \
             --target remote-backup \
-            --docker-hub ikifar
+            --docker-hub ikifar \
+            --cosign

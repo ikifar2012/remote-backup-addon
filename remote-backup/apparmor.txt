@@ -1,18 +1,17 @@
 #include <tunables/global>
 
-profile ADDON_SLUG flags=(attach_disconnected,mediate_deleted) {
+profile remote_backup flags=(attach_disconnected,mediate_deleted) {
   #include <abstractions/base>
 
   # Capabilities
   file,
   signal (send) set=(kill,term,int,hup,cont),
+  network,
 
   # S6-Overlay
   /init ix,
   /bin/** ix,
-  /usr/bin/rsync ix,
-  /usr/bin/scp ix,
-  /usr/bin/rclone ix,
+  /usr/bin/** ix,
   /run/{s6,s6-rc*,service}/** ix,
   /package/** ix,
   /command/** ix,
@@ -28,4 +27,70 @@ profile ADDON_SLUG flags=(attach_disconnected,mediate_deleted) {
 
   # Access to options.json and other files within your addon
   /data/** rw,
+
+  # Start new profile for service
+  /run.sh cx -> run.sh,
+
+  profile run.sh flags=(attach_disconnected,mediate_deleted) {
+    #include <abstractions/base>
+
+    # Capabilities
+    file,
+    signal (send) set=(kill,term,int,hup,cont),
+    network,
+
+    # Receive signals from S6-Overlay
+    signal (receive) peer=*_remote_backup_*, # <- Replace with your service name
+
+
+    # Access to options.json and other files within your addon
+    /data/** rw,
+
+    # Access to mapped volumes specified in config.json
+    /config/** rw,
+    /addons/** rw,
+    /share/** rw,
+    /ssl/** rw,
+    /backup/** rw,
+    /homeassistant_config/** rw,
+
+    # Access required for service functionality
+    /run.sh r,
+    /bin/bash rix,
+    /usr/bin/curl rix,
+    /bin/echo ix,
+    /etc/passwd r,
+    /dev/tty rw,
+  }
+  profile /usr/bin/curl flags=(attach_disconnected,mediate_deleted) {
+    #include <abstractions/base>
+
+    # Capabilities
+    file,
+    signal (send) set=(kill,term,int,hup,cont),
+    network,
+
+    # Receive signals from S6-Overlay
+    signal (receive) peer=*_remote_backup_*, # <- Replace with your service name
+
+
+    # Access to options.json and other files within your addon
+    /data/** rw,
+
+    # Access to mapped volumes specified in config.json
+    /config/** rw,
+    /addons/** rw,
+    /share/** rw,
+    /ssl/** rw,
+    /backup/** rw,
+    /homeassistant_config/** rw,
+
+    # Access required for service functionality
+    /run.sh r,
+    /bin/bash rix,
+    /usr/bin/curl rix,
+    /bin/echo ix,
+    /etc/passwd r,
+    /dev/tty rw,
+  }
 }

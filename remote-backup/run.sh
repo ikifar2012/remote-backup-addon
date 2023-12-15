@@ -10,7 +10,26 @@ declare -r REMOTE_HOST=$(bashio::config "remote_host")
 declare -r REMOTE_PORT=$(bashio::config "remote_port")
 declare -r REMOTE_USER=$(bashio::config "remote_user")
 declare -r REMOTE_PASSWORD=$(bashio::config "remote_password" "")
-
+function migrate_config {
+    # if ssh key file exists in /ssl, move it to /config
+   if bashio::config.has_value "remote_key"; then
+        if bashio::fs.file_exists "/ssl/$(bashio::config 'remote_key')"; then
+            bashio::log.notice "Migrating SSH key file from /ssl to /config."
+            mv "/ssl/$(bashio::config 'remote_key')" "/config/$(bashio::config 'remote_key')" \
+                || bashio::log.error "Failed to copy SSH key file!"
+        fi
+    fi
+    # if rclone config file exists in /ssl, move it to /config
+        if bashio::fs.file_exists "/ssl/rclone.conf"; then
+            bashio::log.notice "Migrating rclone config file from /ssl to /config."
+            mv "/ssl/rclone.conf" "/config/rclone.conf" \
+                || bashio::log.error "Failed to copy rclone config file!"
+        fi
+    # let user know that the migration is complete
+    if bashio::fs.directory_exists "/ssl" && bashio::fs.directory_exists "/config"; then
+        bashio::log.notice "Migration complete."
+    fi
+}
 # script global shortcuts
 declare -r BACKUP_NAME="$(bashio::config 'backup_custom_prefix' '') $(date +'%Y-%m-%d %H-%M')"
 declare -r SSH_HOME="${HOME}/.ssh"
@@ -74,7 +93,7 @@ function add-ssh-key {
     mkdir -p ${SSH_HOME} || bashio::log.error "Failed to create .ssh directory!"
     if bashio::config.has_value "remote_key"; then
         (
-            cp "/ssl/$(bashio::config 'remote_key')" "${SSH_HOME}/id_rsa"
+            cp "/config/$(bashio::config 'remote_key')" "${SSH_HOME}/id_rsa"
             ssh-keygen -y -f ${SSH_HOME}/id_rsa > ${SSH_HOME}/id_rsa.pub
             chmod 600 "${SSH_HOME}/id_rsa"
             chmod 644 "${SSH_HOME}/id_rsa.pub"
@@ -82,9 +101,9 @@ function add-ssh-key {
     fi
 
     # copy known_hosts if available
-    if bashio::fs.file_exists "/ssl/known_hosts"; then
-      bashio::log.debug "Using existing /ssl/known_hosts file."
-      cp "/ssl/known_hosts" "${SSH_HOME}/known_hosts" \
+    if bashio::fs.file_exists "/config/known_hosts"; then
+      bashio::log.debug "Using existing /config/known_hosts file."
+      cp "/config/known_hosts" "${SSH_HOME}/known_hosts" \
           || bashio::log.error "Failed to copy known_hosts file!"
     else
       bashio::log.warning "Missing known_hosts file! Retrieving public key of remote host ${REMOTE_HOST}."
@@ -198,7 +217,7 @@ function rsync-folders {
         return "${__BASHIO_EXIT_OK}"
     fi
 
-    local -r folders="/config /addons /backup /share /ssl" # put directories without trailing slash
+    local -r folders="/addons /all_addon_configs /backup /config /homeassistant_config /media /share /ssl" # put directories without trailing slash
     local -r rsync_url="${REMOTE_USER}@${REMOTE_HOST}:$(bashio::config 'rsync_rootfolder')"
     local flags="-a -r ${DEBUG_FLAG:-}"
 
@@ -236,7 +255,7 @@ function rclone-backups {
     (
         cd /backup/
         mkdir -p ~/.config/rclone/
-        cp -a /ssl/rclone.conf ~/.config/rclone/rclone.conf
+        cp -a /config/rclone.conf ~/.config/rclone/rclone.conf
     ) || bashio::log.error "Failed to prepare rclone configuration!"
 
     if bashio::config.true "rclone_copy"; then
@@ -329,8 +348,8 @@ function delete-local-backup {
 
 # general setup and backup
 set-debug-level
+migrate_config
 add-ssh-key
-
 create-local-backup || die "Local backup process failed! See log for details."
 clone-to-remote || die "Cloning backup(s) to remote host ${REMOTE_HOST} failed! See log for details."
 delete-local-backup || die "Removing local backup(s) failed! See log for details."
