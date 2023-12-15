@@ -24,8 +24,8 @@ jobs:
             --all \
             --target remote-backup \
             --docker-user ${{ secrets.DOCKERHUB_USERNAME }} \
-            --docker-password ${{ secrets.DOCKERHUB_TOKEN }} \
-            --cosign
+            --docker-password ${{ secrets.DOCKERHUB_TOKEN }} 
+
       - name: 🚀 Dispatch Repository Updater update signal
         uses: peter-evans/repository-dispatch@v2
         with:
