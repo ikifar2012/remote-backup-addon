@@ -25,6 +25,7 @@ map:
   - ssl:rw
   - backup
   - homeassistant_config
+  - all_addon_configs
 
 options:
   remote_host: null

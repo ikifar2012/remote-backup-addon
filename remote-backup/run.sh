@@ -217,7 +217,7 @@ function rsync-folders {
         return "${__BASHIO_EXIT_OK}"
     fi
 
-    local -r folders="/homeassistant_config /addons /backup /share /ssl /all_addon_configs /media" # put directories without trailing slash
+    local -r folders="/addons /all_addon_configs /backup /config /homeassistant_config /media /share /ssl" # put directories without trailing slash
     local -r rsync_url="${REMOTE_USER}@${REMOTE_HOST}:$(bashio::config 'rsync_rootfolder')"
     local flags="-a -r ${DEBUG_FLAG:-}"
 
