@@ -15,7 +15,7 @@ configuration:
     description: Password to be used for authentication with remote server
   remote_key:
     name: SSH private key
-    description: SSH private key file to be used for authentication with remote server. The key must be stored in the directory 'ssl' of Home Assistant.
+    description: SSH private key file to be used for authentication with remote server. The key must be stored in the directory 'addon_config/remote_backup' of Home Assistant.
   remote_host_key_algorithms:
     name: Host key algorithms
     description: Can be used to enable further (legacy) algorithms for authentication  
