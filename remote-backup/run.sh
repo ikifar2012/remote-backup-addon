@@ -25,6 +25,12 @@ function migrate_config {
             mv "/ssl/rclone.conf" "/config/rclone.conf" \
                 || bashio::log.error "Failed to copy rclone config file!"
         fi
+    # if known_hosts file exists in /ssl, move it to /config
+        if bashio::fs.file_exists "/ssl/known_hosts"; then
+            bashio::log.notice "Migrating known_hosts file from /ssl to /config."
+            mv "/ssl/known_hosts" "/config/known_hosts" \
+                || bashio::log.error "Failed to copy known_hosts file!"
+        fi
     # let user know that the migration is complete
     if bashio::fs.directory_exists "/ssl" && bashio::fs.directory_exists "/config"; then
         bashio::log.notice "Migration complete."
