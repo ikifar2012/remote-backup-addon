@@ -23,7 +23,7 @@ map:
   - addons
   - share
   - ssl:rw
-  - backup
+  - backup:rw
   - homeassistant_config
   - all_addon_configs
 
