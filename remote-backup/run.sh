@@ -202,17 +202,13 @@ function copy-backup-to-remote {
     fi
 
     bashio::log.info "Copying backup using SFTP/SCP."
-    (
       sshpass -p "${REMOTE_PASSWORD}" \
-        scp ${DEBUG_FLAG:-} -F "${SSH_HOME}/config" "/backup/${SLUG}.tar" remote:"${remote_directory}/${remote_name}.tar" || (
+        scp ${DEBUG_FLAG:-} -F "${SSH_HOME}/config" "/backup/${SLUG}.tar" remote:"${remote_directory}/${remote_name}.tar" ||
         bashio::log.warning "SFTP transfer failed, falling back to SCP: $(sshpass_error $?)"
         sshpass -p "${REMOTE_PASSWORD}" \
-          scp ${DEBUG_FLAG:-} -O -F "${SSH_HOME}/config" "/backup/${SLUG}.tar" remote:"${remote_directory}/${remote_name}.tar" || (
-            bashio::log.error "Error copying backup ${SLUG}.tar to ${remote_directory} on ${REMOTE_HOST}:  $(sshpass_error $?)"
+          scp ${DEBUG_FLAG:-} -O -F "${SSH_HOME}/config" "/backup/${SLUG}.tar" remote:"${remote_directory}/${remote_name}.tar" ||
+            bashio::log.error "Error copying backup ${SLUG}.tar to ${remote_directory} on ${REMOTE_HOST}:  $(sshpass_error $?)" &&
             return "${__BASHIO_EXIT_NOK}"
-        )
-      )
-    )
 
     return "${__BASHIO_EXIT_OK}"
 }
@@ -236,12 +232,10 @@ function rsync-folders {
     fi
 
     bashio::log.debug "Syncing ${folders}"
-    (
-      sshpass -p "${REMOTE_PASSWORD}" rsync ${flags} --port ${REMOTE_PORT} --exclude-from='/tmp/rsync_exclude.txt' ${folders} "${rsync_url}/" --delete || (
-        bashio::log.error "Error rsyncing folder(s) ${folders} to ${rsync_url}: $(sshpass_error $?)!"
+
+      sshpass -p "${REMOTE_PASSWORD}" rsync ${flags} --port ${REMOTE_PORT} --exclude-from='/tmp/rsync_exclude.txt' ${folders} "${rsync_url}/" --delete ||
+        bashio::log.error "Error rsyncing folder(s) ${folders} to ${rsync_url}: $(sshpass_error $?)!" &&
         return "${__BASHIO_EXIT_NOK}"
-      )
-    )
 
     return "${__BASHIO_EXIT_OK}"
 }
@@ -270,32 +264,27 @@ function rclone-backups {
             remote_name=$BACKUP_NAME
         fi
         bashio::log.info "Copying backup using rclone."
-        (
-            rclone ${DEBUG_FLAG:-} copyto "/backup/${SLUG}.tar" "${rclone_remote_host}:${remote_directory}/${remote_name}.tar" || (
-                bashio::log.error "Error rclone ${SLUG}.tar to ${rclone_remote_host}:${remote_directory}/${remote_name}.tar!"
+
+            rclone ${DEBUG_FLAG:-} copyto "/backup/${SLUG}.tar" "${rclone_remote_host}:${remote_directory}/${remote_name}.tar" ||
+                bashio::log.error "Error rclone ${SLUG}.tar to ${rclone_remote_host}:${remote_directory}/${remote_name}.tar!" &&
                 return "${__BASHIO_EXIT_NOK}"
-            )
-        )
+
     fi
     if bashio::config.true "rclone_sync"; then
         bashio::log.info "Syncing backups using rclone"
-        (
-            rclone ${DEBUG_FLAG:-} sync "/backup" "${rclone_remote_host}:${remote_directory}" || (
+
+            rclone ${DEBUG_FLAG:-} sync "/backup" "${rclone_remote_host}:${remote_directory}" ||
                 bashio::log.error "Error syncing backups by rclone!"
                 return "${__BASHIO_EXIT_NOK}"
-            )
-        )
     fi
     if bashio::config.true "rclone_restore"; then
         local restore_name="restore-$(date +%F)"
         mkdir -p "${restore_name}"
         bashio::log.info "Restoring backups to ${restore_name} using rclone"
-        (
-            rclone ${DEBUG_FLAG:-} copyto "${rclone_remote_host}:${remote_directory}" "/backup/${restore_name}/" || (
+
+            rclone ${DEBUG_FLAG:-} copyto "${rclone_remote_host}:${remote_directory}" "/backup/${restore_name}/" ||
                 bashio::log.error "Error restoring backups from ${rclone_remote_host}:${remote_directory}!"
                 return "${__BASHIO_EXIT_NOK}"
-            )
-        )
     fi
     return "${__BASHIO_EXIT_OK}"
 }
