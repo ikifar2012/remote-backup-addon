@@ -1,3 +1,10 @@
+# 2024.5.0
+
+- ⬆️ Update actions/checkout digest to a5ac7e5 by @renovate in https://github.com/ikifar2012/remote-backup-addon/pull/142
+- ⬆️ Update Add-on base image to v16 (major) by @renovate in https://github.com/ikifar2012/remote-backup-addon/pull/144
+
+**Full Changelog**: https://github.com/ikifar2012/remote-backup-addon/compare/2024.4.0...2024.5.0
+
 # 2024.4.0
 
 - ⬆️ Update peter-evans/repository-dispatch action to v3 by @renovate in https://github.com/ikifar2012/remote-backup-addon/pull/130
@@ -72,7 +79,7 @@
 **Be aware that some of the configuration options have been renamed and may overwrite your current settings**
 
 Please backup your configuration before upgrading by clicking the vertical dots in the top right corner of the add-on configuration page
-and click "Edit in YAML", you can then copy that to a text file and map those settings to their new config options as per the 
+and click "Edit in YAML", you can then copy that to a text file and map those settings to their new config options as per the
 [documentation](https://addons.mathesonsteplock.ca/docs/addons/remote-backup/basic-config).
 
 - enable rsync key-based authentication #51
