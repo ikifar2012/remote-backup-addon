@@ -35,6 +35,19 @@ function migrate_config {
     if bashio::fs.directory_exists "/ssl" && bashio::fs.directory_exists "/config"; then
         bashio::log.notice "Migration complete."
     fi
+
+}
+function run_setup {
+    # create directory for failed backups
+    bashio::log.notice "Creating directories for failed backup alerts."
+    mkdir -p /tmp/backup
+    mkdir -p /tmp/scp
+    mkdir -p /tmp/rsync
+    mkdir -p /tmp/rclone
+    bashio::log.notice "Directories created."
+    bashio::log.notice "Setup complete."
+
+
 }
 # script global shortcuts
 declare -r BACKUP_NAME="$(bashio::config 'backup_custom_prefix' '') $(date +'%Y-%m-%d %H-%M')"
@@ -98,10 +111,11 @@ function add-ssh-key {
     # prepare SSH key pair
     mkdir -p ${SSH_HOME} || bashio::log.error "Failed to create .ssh directory!"
     if bashio::config.has_value "remote_key"; then
+        bashio::log.notice "Setting up SSH key pair."
         (
             cp "/config/$(bashio::config 'remote_key')" "${SSH_HOME}/id_rsa"
-            ssh-keygen -y -f ${SSH_HOME}/id_rsa > ${SSH_HOME}/id_rsa.pub
             chmod 600 "${SSH_HOME}/id_rsa"
+            ssh-keygen -y -f ${SSH_HOME}/id_rsa > ${SSH_HOME}/id_rsa.pub
             chmod 644 "${SSH_HOME}/id_rsa.pub"
         ) || bashio::log.error "Failed to create SSH key pair!"
     fi
@@ -173,20 +187,24 @@ function create-local-backup {
         data="$(echo $data | tr -d '}'), \"addons\": ${addons}, \"folders\": ${folders}}" # append addon and folder set
         if ! SLUG=$(bashio::api.supervisor POST /backups/new/partial "${data}" .slug); then
             bashio::log.fatal "Error creating ${bak_type} partial backup!"
-            return "${__BASHIO_EXIT_NOK}"
+            touch "/tmp/backup/failed"
         fi
     else
         bashio::log.info "Creating ${bak_type} full backup: \"${BACKUP_NAME}\""
 
         if ! SLUG=$(bashio::api.supervisor POST /backups/new/full "${data}" .slug); then
             bashio::log.fatal "Error creating ${bak_type} full backup!"
-            return "${__BASHIO_EXIT_NOK}"
+            touch "/tmp/backup/failed"
         fi
 
     fi
-
+    if bashio::fs.file_exists "/tmp/backup/failed"; then
+        rm -f "/tmp/backup/failed"
+        return "${__BASHIO_EXIT_NOK}"
+    else
     bashio::log.info "Backup created: ${SLUG}"
     return "${__BASHIO_EXIT_OK}"
+    fi
 }
 
 function copy-backup-to-remote {
@@ -202,6 +220,7 @@ function copy-backup-to-remote {
     fi
 
     bashio::log.info "Copying backup using SFTP/SCP."
+
     (
       sshpass -p "${REMOTE_PASSWORD}" \
         scp ${DEBUG_FLAG:-} -F "${SSH_HOME}/config" "/backup/${SLUG}.tar" remote:"${remote_directory}/${remote_name}.tar" || (
@@ -209,13 +228,19 @@ function copy-backup-to-remote {
         sshpass -p "${REMOTE_PASSWORD}" \
           scp ${DEBUG_FLAG:-} -O -F "${SSH_HOME}/config" "/backup/${SLUG}.tar" remote:"${remote_directory}/${remote_name}.tar" || (
             bashio::log.error "Error copying backup ${SLUG}.tar to ${remote_directory} on ${REMOTE_HOST}:  $(sshpass_error $?)"
-            return "${__BASHIO_EXIT_NOK}"
+            touch "/tmp/scp/failed"
         )
       )
     )
 
-    return "${__BASHIO_EXIT_OK}"
+    if bashio::fs.file_exists "/tmp/scp/failed"; then
+        rm -f "/tmp/scp/failed"
+        return "${__BASHIO_EXIT_NOK}"
+    else
+        return "${__BASHIO_EXIT_OK}"
+    fi
 }
+
 
 function rsync-folders {
     if ! bashio::config.true "rsync_enabled"; then
@@ -239,11 +264,15 @@ function rsync-folders {
     (
       sshpass -p "${REMOTE_PASSWORD}" rsync ${flags} --port ${REMOTE_PORT} --exclude-from='/tmp/rsync_exclude.txt' ${folders} "${rsync_url}/" --delete || (
         bashio::log.error "Error rsyncing folder(s) ${folders} to ${rsync_url}: $(sshpass_error $?)!"
-        return "${__BASHIO_EXIT_NOK}"
+        touch "/tmp/rsync/failed"
       )
     )
-
-    return "${__BASHIO_EXIT_OK}"
+    if bashio::fs.file_exists "/tmp/rsync/failed"; then
+        rm -f "/tmp/rsync/failed"
+        return "${__BASHIO_EXIT_NOK}"
+    else
+        return "${__BASHIO_EXIT_OK}"
+    fi
 }
 
 function rclone-backups {
@@ -273,7 +302,7 @@ function rclone-backups {
         (
             rclone ${DEBUG_FLAG:-} copyto "/backup/${SLUG}.tar" "${rclone_remote_host}:${remote_directory}/${remote_name}.tar" || (
                 bashio::log.error "Error rclone ${SLUG}.tar to ${rclone_remote_host}:${remote_directory}/${remote_name}.tar!"
-                return "${__BASHIO_EXIT_NOK}"
+                touch "/tmp/rclone/failed"
             )
         )
     fi
@@ -282,7 +311,7 @@ function rclone-backups {
         (
             rclone ${DEBUG_FLAG:-} sync "/backup" "${rclone_remote_host}:${remote_directory}" || (
                 bashio::log.error "Error syncing backups by rclone!"
-                return "${__BASHIO_EXIT_NOK}"
+                touch "/tmp/rclone/failed"
             )
         )
     fi
@@ -293,11 +322,16 @@ function rclone-backups {
         (
             rclone ${DEBUG_FLAG:-} copyto "${rclone_remote_host}:${remote_directory}" "/backup/${restore_name}/" || (
                 bashio::log.error "Error restoring backups from ${rclone_remote_host}:${remote_directory}!"
-                return "${__BASHIO_EXIT_NOK}"
+                touch "/tmp/rclone/failed"
             )
         )
     fi
-    return "${__BASHIO_EXIT_OK}"
+    if bashio::fs.file_exists "/tmp/rclone/failed"; then
+        rm -f "/tmp/rclone/failed"
+        return "${__BASHIO_EXIT_NOK}"
+    else
+        return "${__BASHIO_EXIT_OK}"
+    fi
 }
 
 function clone-to-remote {
@@ -355,6 +389,7 @@ function delete-local-backup {
 # general setup and backup
 set-debug-level
 migrate_config
+run_setup
 add-ssh-key
 create-local-backup || die "Local backup process failed! See log for details."
 clone-to-remote || die "Cloning backup(s) to remote host ${REMOTE_HOST} failed! See log for details."
