@@ -1,4 +1,4 @@
-# 2024.5.0
+# 2024.6.0
 
 - Fix error notifications
 - Fix SSH key permissions
