@@ -50,7 +50,7 @@ function run_setup {
 
 }
 # script global shortcuts
-declare -r BACKUP_NAME="$(bashio::config 'backup_custom_prefix' '') $(date +'%Y-%m-%d %H-%M')"
+declare -r BACKUP_NAME="$(bashio::config 'backup_custom_prefix' '')$(bashio::config 'backup_custom_delimiter' '_')$(date +'%Y-%m-%d %H-%M')"
 declare -r SSH_HOME="${HOME}/.ssh"
 
 function set-debug-level {

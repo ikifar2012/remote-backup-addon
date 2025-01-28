@@ -34,6 +34,7 @@ options:
   remote_key: ""
   backup_friendly_name: true
   backup_custom_prefix: Automated backup
+  backup_custom_delimiter: "_"
   backup_keep_local: "all"
   ssh_enabled: true
   ssh_remote_directory: "hassio-backup"
@@ -54,6 +55,7 @@ schema:
   remote_host_key_algorithms: str?
   backup_friendly_name: bool?
   backup_custom_prefix: str?
+  backup_custom_delimiter: str?
   backup_exclude_folders:
     - match(^[A-Za-z0-9_\-\.\*\/\?\+\\ ]*$)?
   backup_exclude_addons:
