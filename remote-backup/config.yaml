@@ -33,7 +33,7 @@ options:
   remote_user: null
   remote_key: ""
   backup_friendly_name: true
-  backup_custom_prefix: Automated backup
+  backup_custom_prefix: Automated_backup
   backup_custom_delimiter: "_"
   backup_keep_local: "all"
   ssh_enabled: true
