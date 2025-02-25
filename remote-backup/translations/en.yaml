@@ -36,7 +36,7 @@ configuration:
     description: Give the addons slug which equals the addon hostname using '_' instead of '-', e.g. core_mariadb
   backup_keep_local:
     name: Local backups to keep
-    description: default is 'all', give a number for the last x backups to keep or empty to immediately remove created backups after copying.
+    description: default is 'all', give a number for the last x backups to keep or 'null' to immediately remove created backups after copying.
   backup_password:
     name: Password for protected backup
   ssh_enabled:
