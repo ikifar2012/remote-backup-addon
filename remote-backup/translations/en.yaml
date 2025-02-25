@@ -27,7 +27,7 @@ configuration:
     description: Prefix to be used for the backup name
   backup_custom_delimiter:
     name: Custom backup name delimiter
-    description: Delimiter to be used for the backup name between the prefix and the timestamp
+    description: Allows you to change the delimiter between the prefix and the date of the snapshot, by default this is set to `_`
   backup_exclude_folders:
     name: Folder to exclude from backup
     description: valid options are addons/local, homeassistant, media, share, ssl, all_addon_configs
